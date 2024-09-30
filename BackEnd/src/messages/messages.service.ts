@@ -1,5 +1,3 @@
-import { ConnectedSocket } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Message } from './entities/messages.entity';
