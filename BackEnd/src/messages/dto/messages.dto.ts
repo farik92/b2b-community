@@ -9,7 +9,6 @@ export class CreateMessageDto {
   @IsString()
   content: string;
   @IsNumber()
-  @IsNotEmpty()
   @IsPositive()
   receiverId: number;
   @IsNotEmpty()

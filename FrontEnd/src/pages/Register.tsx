@@ -17,7 +17,7 @@ export function Register() {
   useEffect(() => {
     if (isAuthenticated) {
       const timer = setTimeout(() => {
-        navigate(`/users/${user.name}`);
+        navigate(`/users/${user.id}`);
       }, 2000);
       return () => clearTimeout(timer);
     }

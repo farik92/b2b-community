@@ -57,8 +57,8 @@ This project is a real-time chat created to demonstrate my fullstack skills and 
 ## Installation
 
 ```
-git clone https://github.com/Gonza0922/NestJS-React-Real-Time-Chat
-cd NestJS-React-Real-Time-Chat
+git clone https://github.com/farik92/b2b-community.git
+cd b2b-community
 npm install
 npm run dev
 ```

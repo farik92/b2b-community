@@ -138,16 +138,7 @@ export class MessagesService {
     }
   }
 
-  async markMessagesAsSeen(message_ID: number) {
-    await this.messageRepository
-      .createQueryBuilder()
-      .update(Message)
-      .set({ isSeen: true })
-      .where('message_ID = :message_ID AND isSeen = false', { message_ID })
-      .execute();
-  }
-
-  async markMessagesAsRead(message_ID: number) {
+  async markMessageAsRead(message_ID: number) {
     await this.messageRepository
       .createQueryBuilder()
       .update(Message)
@@ -156,10 +147,20 @@ export class MessagesService {
       .execute();
   }
 
-  async unReadCount(receiverId: any) {
+  async unReadCount(receiverId: number) {
     return await this.messageRepository
       .createQueryBuilder('message')
       .where('receiverId = :receiverId AND isRead = false', { receiverId })
+      .getCount();
+  }
+
+  async unReadCountByChat(receiverId: number, senderId: number) {
+    return await this.messageRepository
+      .createQueryBuilder('message')
+      .where(
+        'receiverId = :receiverId AND senderId = :senderId AND isRead = false',
+        { receiverId, senderId },
+      )
       .getCount();
   }
 }

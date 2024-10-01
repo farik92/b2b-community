@@ -30,3 +30,14 @@ export const postMessagesRequest = async (newData: Message) => {
   });
   return request.data;
 };
+
+export const markMessageAsRead = async (id: number) => {
+  const token = sessionStorage.getItem("token");
+  //Create a message
+  const request = await axios.post(`/messages/read/${id}`, '', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  return request.data;
+};

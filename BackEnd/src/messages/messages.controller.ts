@@ -39,12 +39,8 @@ export class MessagesController {
     return this.messagesService.postMessage(newMessage);
   }
   @Post('read/:id')
-  markMessagesAsRead(@Param('id') id: number) {
-    return this.messagesService.markMessagesAsRead(id);
-  }
-  @Post('seen/:id')
-  markMessagesAsSeen(@Param('id') id: number) {
-    return this.messagesService.markMessagesAsSeen(id);
+  markMessageAsRead(@Param('id') id: number) {
+    return this.messagesService.markMessageAsRead(id);
   }
 
   @Get('test')

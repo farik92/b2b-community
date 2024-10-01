@@ -26,16 +26,13 @@ export class RoomsService {
     try {
       const findRooms = await this.roomRepository
         .createQueryBuilder()
-        .select(['name', 'image', 'createdAt', 'creatorUserID as creator'])
-        .addSelect(
-          'GROUP_CONCAT(memberUserID ORDER BY memberUserID)',
-          'members',
-        )
+        .select(['name', 'image', 'createdAt', 'creatorId as creator'])
+        .addSelect('GROUP_CONCAT(memberId ORDER BY memberId)', 'members')
         .where('name = :roomName', { roomName })
         .groupBy('name')
         .addGroupBy('image')
         .addGroupBy('createdAt')
-        .addGroupBy('creator')
+        .addGroupBy('creatorId')
         .getRawMany();
       return this.formatRooms(findRooms);
     } catch (error) {
@@ -48,18 +45,15 @@ export class RoomsService {
     try {
       const findRooms = await this.roomRepository
         .createQueryBuilder()
-        .select(['name', 'image', 'createdAt', 'creatorUserID as creator'])
-        .addSelect(
-          'GROUP_CONCAT(memberUserID ORDER BY memberUserID)',
-          'members',
-        )
-        .where('(memberUserID = :id OR creatorUserID = :id)', {
+        .select(['name', 'image', 'createdAt', 'creatorId as creator'])
+        .addSelect('GROUP_CONCAT(memberId ORDER BY memberId)', 'members')
+        .where('(memberId = :id OR creatorId = :id)', {
           id,
         })
         .groupBy('name')
         .addGroupBy('image')
         .addGroupBy('createdAt')
-        .addGroupBy('creator')
+        .addGroupBy('creatorId')
         .getRawMany();
       return this.formatRooms(findRooms);
     } catch (error) {
@@ -74,6 +68,7 @@ export class RoomsService {
       const { name, creator, members } = newRoom;
       const defaultImage = process.env.ROOM_NONE_IMAGE;
       if (!image) image = defaultImage;
+      console.log(newRoom);
       members.forEach((member) => {
         const newRoomCreated = this.roomRepository.create({
           name,
@@ -84,8 +79,8 @@ export class RoomsService {
         return this.roomRepository.save(newRoomCreated);
       });
     } catch (error) {
-      console.error(error);
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      //console.error(error);
+      //throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

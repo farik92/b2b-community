@@ -17,7 +17,7 @@ function App() {
           <Route element={<UserProtected />}>
             <Route element={<SocketWrapper />}>
               <Route index element={<Chat />} />
-              <Route path="/users/:name" element={<Chat />} />
+              <Route path="/users/:id" element={<Chat />} />
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />

@@ -13,10 +13,8 @@ export class Message {
   createdAt: Date;
   @Column()
   type: string;
-  @Column()
+  @Column({ default: null })
   receiverId: number;
   @Column({ default: false })
   isRead: boolean;
-  @Column({ default: false })
-  isSeen: boolean;
 }

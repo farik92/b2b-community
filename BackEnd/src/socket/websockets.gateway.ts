@@ -31,22 +31,29 @@ export class WebSocketsGateway
 
   @WebSocketServer() server: Server;
   private clients: ClientDto[] = [];
-  private usersHandle: number[] = [];
+  private usersHandle: any[] = [];
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
-      const { userId } = socket.handshake.auth;
+      const { userId, receiverId } = socket.handshake.auth;
 
       if (userId) {
         console.log(`${userId} with id: ${socket.id} is connected `);
         this.clients.push({ user: userId, id: socket.id, socket });
         if (!this.usersHandle.includes(userId)) this.usersHandle.push(userId);
         this.server.emit('getOnlineUsers', this.usersHandle);
+        console.log(this.usersHandle);
         const unReadMessagesCount =
           await this.messageService.unReadCount(userId);
         this.server
           .to(socket.id)
           .emit('unReadMessagesCount', unReadMessagesCount);
+
+        const unReadMessagesCountByChat =
+          await this.messageService.unReadCountByChat(userId, receiverId);
+        this.server
+          .to(socket.id)
+          .emit('unReadMessagesCountByChat', unReadMessagesCountByChat);
 
         const allMessages =
           await this.messageService.getAllMessagesByUserId(userId);
@@ -108,6 +115,15 @@ export class WebSocketsGateway
             this.server
               .to(client.id)
               .emit('unReadMessagesCount', unReadMessagesCount);
+
+            const unReadMessagesCountByChat =
+              await this.messageService.unReadCountByChat(
+                receiverUser.id,
+                userId,
+              );
+            this.server
+              .to(client.id)
+              .emit('unReadMessagesCountByChat', unReadMessagesCountByChat);
           }
         } else {
           // es una room
@@ -144,8 +160,8 @@ export class WebSocketsGateway
     }
   }
 
-  @SubscribeMessage('seenMessages')
-  async handleSeenMessages(
+  @SubscribeMessage('markMessageAsRead')
+  async handleMarkMessageAsRead(
     @MessageBody()
     payload: {
       message_ID: number;
@@ -153,41 +169,11 @@ export class WebSocketsGateway
       userId?: number;
     },
   ) {
-    await this.messageService.markMessagesAsSeen(payload.message_ID);
-
+    await this.messageService.markMessageAsRead(payload.message_ID);
+    console.log(payload);
     if (payload.roomId) {
-      this.server.to(`room_${payload.roomId}`).emit('messagesSeen', {
+      this.server.to(`room_${payload.roomId}`).emit('markMessageAsRead', {
         message_ID: payload.message_ID,
-        roomId: payload.roomId,
-      });
-    }
-    if (payload.userId) {
-      const client = this.clients.find(
-        (client) => client.user === payload.userId,
-      );
-      if (client) {
-        this.server.to(client.id).emit('messagesSeen', {
-          message_ID: payload.message_ID,
-          userId: payload.userId,
-        });
-      }
-    }
-  }
-
-  @SubscribeMessage('readMessages')
-  async handleReadMessages(
-    @MessageBody()
-    payload: {
-      message_ID: number;
-      roomId?: number;
-      userId?: number;
-    },
-  ) {
-    await this.messageService.markMessagesAsRead(payload.message_ID);
-    if (payload.roomId) {
-      this.server.to(`room_${payload.roomId}`).emit('messagesRead', {
-        message_ID: payload.message_ID,
-        roomId: payload.roomId,
       });
     }
 
@@ -196,9 +182,8 @@ export class WebSocketsGateway
         (client) => client.user === payload.userId,
       );
       if (client) {
-        this.server.to(client.id).emit('messagesRead', {
+        this.server.to(client.id).emit('markMessageAsRead', {
           message_ID: payload.message_ID,
-          userId: payload.userId,
         });
       }
     }
