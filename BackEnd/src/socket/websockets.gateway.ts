@@ -48,16 +48,6 @@ export class WebSocketsGateway
         this.server
           .to(socket.id)
           .emit('unReadMessagesCount', unReadMessagesCount);
-
-        const unReadMessagesCountByChat =
-          await this.messageService.unReadCountByChat(userId, receiverId);
-        this.server
-          .to(socket.id)
-          .emit('unReadMessagesCountByChat', unReadMessagesCountByChat);
-
-        const allMessages =
-          await this.messageService.getAllMessagesByUserId(userId);
-        this.server.to(socket.id).emit('allMessages', allMessages);
       }
     } catch (error) {
       console.error(error);

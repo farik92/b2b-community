@@ -4,12 +4,14 @@ import { Message } from './entities/messages.entity';
 import { Repository } from 'typeorm';
 import { CreateMessageDto, finalReceiverDto } from './dto/messages.dto';
 import { UsersService } from 'src/users/users.service';
+/*import { WebSocketsGateway } from '../socket/websockets.gateway';*/
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectRepository(Message) private messageRepository: Repository<Message>,
     private usersService: UsersService,
+    /*private socket: WebSocketsGateway,*/
   ) {}
 
   async getAllMessages(req: Request) {
@@ -56,6 +58,7 @@ export class MessagesService {
 
   async getAllMessagesByUserId(id: number) {
     try {
+      console.log('All messages by user id: ', id);
       const authUserMessages = await this.messageRepository
         .createQueryBuilder('message')
         .leftJoinAndSelect('message.sender', 'sender')
@@ -97,6 +100,7 @@ export class MessagesService {
 
   async getMessagesByReceiver(req: Request, receiver: finalReceiverDto) {
     try {
+      console.log('Messages by receiver: ', receiver);
       if (typeof receiver.data === 'object') {
         return await this.messageRepository.find({
           relations: ['sender'],
@@ -129,6 +133,10 @@ export class MessagesService {
 
   async postMessage(newMessage: CreateMessageDto) {
     try {
+      /*this.socket.server
+        .to(String(newMessage.receiverId))
+        .emit('message', newMessage.content);*/
+      console.log('New message: ', newMessage);
       const newMessageCreated = this.messageRepository.create(newMessage);
       //console.log(newMessageCreated);
       return this.messageRepository.save(newMessageCreated);
@@ -139,6 +147,7 @@ export class MessagesService {
   }
 
   async markMessageAsRead(message_ID: number) {
+    console.log('You read message: ', message_ID);
     await this.messageRepository
       .createQueryBuilder()
       .update(Message)
@@ -148,6 +157,7 @@ export class MessagesService {
   }
 
   async unReadCount(receiverId: number) {
+    console.log('Unread message count');
     return await this.messageRepository
       .createQueryBuilder('message')
       .where('receiverId = :receiverId AND isRead = false', { receiverId })
@@ -155,6 +165,7 @@ export class MessagesService {
   }
 
   async unReadCountByChat(receiverId: number, senderId: number) {
+    console.log('Unread message count by chat');
     return await this.messageRepository
       .createQueryBuilder('message')
       .where(

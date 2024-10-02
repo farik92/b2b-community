@@ -11,7 +11,6 @@ export const useGetAllMessages = (receiver: { id: number; members: number[] | un
 
     useEffect(() => {
         // setMessages([]);
-        console.log(receiver.id)
         if (receiver.id) {
             const getMessagesReceiver = async () => {
                 const data = await getMessagesReceiverRequest(finalReceiver);

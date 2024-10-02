@@ -70,8 +70,9 @@ function ChatsPanel() {
                          }}
                     >
                         <div className="container-image-and-online">
-                            <div className={conectedUsers.includes(userOrRoom.id) ? "online" : "offline"}></div>{messageCount}
+                            <div className={conectedUsers.includes(userOrRoom.id) ? "online" : "offline"}></div>
                         </div>
+                        <div className="container-message-count">{messageCount ? '+' + messageCount : ''}</div>
                         {lastMessageSender ? (
                             <div className="container-user-chat-content">
                                 <span className="sender-chat-span">{userOrRoom.name}</span>

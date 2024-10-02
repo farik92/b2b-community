@@ -15,9 +15,6 @@ function Chat() {
 
     return (
         <>
-            <nav className="navbar">
-                <h1>{user.name} {unReadMessagesCount.count === 0 ? '' : unReadMessagesCount.count}</h1>
-            </nav>
             <div className="chats-panel">
                 <nav className="chats-navbar">
                     <span
@@ -26,7 +23,7 @@ function Chat() {
                         }}
                         className="span-chats"
                     >
-                        Чаты
+                        Чаты {unReadMessagesCount.count === 0 ? '' : unReadMessagesCount.count}
                     </span>
                 </nav>
                 {panel === "chats" ? (

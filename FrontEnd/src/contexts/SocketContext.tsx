@@ -14,7 +14,6 @@ export function useSocketContext() {
 const SocketProvider = (props: ChildrenType) => {
     const {user, isAuthenticated, isMembers} = useUserContext();
     const [unReadMessagesCount, setUnReadMessagesCount] = useState<{ count?: number }>({});
-    const [unReadMessagesCountByChat, setUnReadMessagesCountByChat] = useState<{count?:number,id?:number}>({});
     const [userToSend, setUserToSend] = useState("none");
     const [userToSendName, setUserToSendName] = useState("none");
     const {messages, setMessages} = useGetAllMessages(isMembers);
@@ -29,7 +28,6 @@ const SocketProvider = (props: ChildrenType) => {
     const [usersAndRooms, setUsersAndRooms] = useState<RegisterData[]>([]);
 
     useEffect(() => {
-        console.log('getMessagesReceiver')
         const getMessagesReceiver = async () => {
             const data = await getAllMessagesRequest();
             setAllMessages(data);
@@ -69,21 +67,10 @@ const SocketProvider = (props: ChildrenType) => {
         if (socket) {
             socket.on('unReadMessagesCount', (count: number) => {
                 setUnReadMessagesCount({count});
-                console.log('Unread messages:', count);
             });
             return () => {
                 socket.off("unReadMessagesCount");
             };
-        }
-    }, [socket]);
-
-    useEffect(() => {
-        if (socket) {
-            console.log(user);
-            socket.on('unReadMessagesCountByChat', (count: number) => {
-                setUnReadMessagesCountByChat({count,id:user.id});
-                console.log('Unread messages by chat:', count);
-            })
         }
     }, [socket]);
 
@@ -115,7 +102,6 @@ const SocketProvider = (props: ChildrenType) => {
             value={{
                 conectedUsers,
                 socket,
-                unReadMessagesCountByChat,
                 unReadMessagesCount,
                 userToSend,
                 setUserToSend,
