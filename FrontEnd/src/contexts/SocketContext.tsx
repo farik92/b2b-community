@@ -5,8 +5,6 @@ import {useUserContext} from "./UserContext";
 import {Message} from "../interfaces/message.interfaces";
 import {useGetAllMessages} from "../hooks/messages.hooks";
 import {getAllMessagesRequest} from "../api/messages.api";
-import {getRoomByNameRequest} from "../api/room.api";
-import {getUserIdRequest} from "../api/users.api";
 
 const socketContext = createContext<any>(undefined);
 
@@ -15,8 +13,8 @@ export function useSocketContext() {
 }
 const SocketProvider = (props: ChildrenType) => {
     const {user, isAuthenticated, isMembers} = useUserContext();
-    const [unReadMessagesCount, setUnReadMessagesCount] = useState("none");
-    const [unReadMessagesCountByChat, setUnReadMessagesCountByChat] = useState("none");
+    const [unReadMessagesCount, setUnReadMessagesCount] = useState<{ count?: number }>({});
+    const [unReadMessagesCountByChat, setUnReadMessagesCountByChat] = useState<{count?:number,id?:number}>({});
     const [userToSend, setUserToSend] = useState("none");
     const [userToSendName, setUserToSendName] = useState("none");
     const {messages, setMessages} = useGetAllMessages(isMembers);
@@ -31,28 +29,13 @@ const SocketProvider = (props: ChildrenType) => {
     const [usersAndRooms, setUsersAndRooms] = useState<RegisterData[]>([]);
 
     useEffect(() => {
-        const getMessagesReceiver = async () => {
-            const data = await getRoomByNameRequest(userToSend);
-            setRoomMembers([]);
-            if (data.length > 0) {
-                data[0].members.forEach(async (member_ID: number) => {
-                    const dataMember = await getUserIdRequest(member_ID);
-                    if (dataMember.id === user.id) {
-                        setRoomMembers((prevState) => [...prevState, {...dataMember, name: "Me"}]);
-                    } else setRoomMembers((prevState) => [...prevState, dataMember]);
-                });
-            }
-        };
-        getMessagesReceiver();
-    }, [isMembers]);
-
-    useEffect(() => {
+        console.log('getMessagesReceiver')
         const getMessagesReceiver = async () => {
             const data = await getAllMessagesRequest();
             setAllMessages(data);
         };
         getMessagesReceiver();
-    }, []);
+    }, [messages]);
 
     useEffect(() => {
         const socket = io("http://localhost:3000", {
@@ -69,18 +52,10 @@ const SocketProvider = (props: ChildrenType) => {
             const allMessagesHandler = (data: any) => {
                 const finalData = {...data, createdAt: dateISO};
                 setAllMessages((prevAllMessages) => [...prevAllMessages, finalData]);
-                if (finalData.type === "room") {
-                    if (finalData.receiverId === userToSend)
-                        setMessages((prevMessages) => [
-                            ...prevMessages,
-                            {...finalData, sender: finalData.sender.id},
-                        ]);
-                } else {
-                    setMessages((prevMessages) => [
-                        ...prevMessages,
-                        {...finalData, sender: finalData.sender.id},
-                    ]);
-                }
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {...finalData, sender: finalData.sender.id},
+                ]);
             };
 
             socket.on("message", allMessagesHandler);
@@ -92,8 +67,8 @@ const SocketProvider = (props: ChildrenType) => {
 
     useEffect(() => {
         if (socket) {
-            socket.on('unReadMessagesCount', (count: string) => {
-                setUnReadMessagesCount(count);
+            socket.on('unReadMessagesCount', (count: number) => {
+                setUnReadMessagesCount({count});
                 console.log('Unread messages:', count);
             });
             return () => {
@@ -104,8 +79,9 @@ const SocketProvider = (props: ChildrenType) => {
 
     useEffect(() => {
         if (socket) {
-            socket.on('unReadMessagesCountByChat', (count: string) => {
-                setUnReadMessagesCountByChat(count);
+            console.log(user);
+            socket.on('unReadMessagesCountByChat', (count: number) => {
+                setUnReadMessagesCountByChat({count,id:user.id});
                 console.log('Unread messages by chat:', count);
             })
         }

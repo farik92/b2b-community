@@ -6,14 +6,8 @@ import MessagesContainer from "../components/MessagesContainer.tsx";
 import CreateRoom from "../components/CreateRoom.tsx";
 
 function Chat() {
-    const { user, logout, updateProfile, setUpdateProfile } = useUserContext();
+    const { user } = useUserContext();
     const { userToSend, messages, panel, setPanel, scrollRef, unReadMessagesCount } = useSocketContext();
-
-    useEffect(() => {
-        setUpdateProfile({
-            name: user.name,
-        });
-    }, []);
 
     useEffect(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -22,16 +16,12 @@ function Chat() {
     return (
         <>
             <nav className="navbar">
-                <h1>{user.name} {unReadMessagesCount === 0 ? '' : unReadMessagesCount}</h1>
-                <button className="button-logout" onClick={logout}>
-                    Выход
-                </button>
+                <h1>{user.name} {unReadMessagesCount.count === 0 ? '' : unReadMessagesCount.count}</h1>
             </nav>
             <div className="chats-panel">
                 <nav className="chats-navbar">
                     <span
                         onClick={() => {
-                            setUpdateProfile({...updateProfile});
                             setPanel("chats");
                         }}
                         className="span-chats"

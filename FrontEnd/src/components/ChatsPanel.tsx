@@ -4,11 +4,13 @@ import {useUserContext} from "../contexts/UserContext";
 import {getDateAndHours} from "../functions/getDateAndHours";
 import {Message} from "../interfaces/message.interfaces";
 import {UsersAndRooms} from "../interfaces/user.interfaces";
+// import {useEffect, useMemo} from "react";
 
 function ChatsPanel() {
     const {user, setIsMembers} = useUserContext();
-    const {conectedUsers, userToSend, setUserToSend, setUserToSendName, allMessages, unReadMessagesCountByChat} = useSocketContext();
+    const {conectedUsers, userToSend, setUserToSend, setUserToSendName, allMessages } = useSocketContext();
     const {usersAndRooms} = useGetAllUsersAndRooms(user.id);
+
 
     const getLastMessage = (sender: number, receiverId: number) => {
         if (!allMessages) return [undefined, undefined, undefined];
@@ -23,10 +25,15 @@ function ChatsPanel() {
                     (message.sender.id === sender && message.receiverId === receiverId) ||
                     (message.sender.id === receiverId && message.receiverId === sender)
             );
+        const messageCount=allMessages.filter((message: Message)=>(message.type === "room"
+            ? // room
+            message.receiverId === receiverId
+            : // user
+            message.sender.id === receiverId && message.receiverId === sender && !message.isRead)).length
         if (!lastMessage)
             return [{sender: {id: undefined}, content: undefined, createdAt: undefined}];
         const {content, sender: resultSender, createdAt: resultCreatedAt} = lastMessage;
-        return [content, resultSender, resultCreatedAt];
+        return [content, resultSender, resultCreatedAt,messageCount];
     };
     const sortedUsersAndRooms = usersAndRooms.slice().sort((a: { id: number; }, b: { id: number; }) => {
         const [, , aLastMessageCreatedAt] = getLastMessage(user.id, a.id);
@@ -50,7 +57,7 @@ function ChatsPanel() {
     return (
         <div className="chats">
             {sortedUsersAndRooms.map((userOrRoom: UsersAndRooms, index: number) => {
-                const [lastMessageContent, lastMessageSender, lastMessageCreatedAt] = getLastMessage(
+                const [lastMessageContent, lastMessageSender, lastMessageCreatedAt,messageCount] = getLastMessage(
                     user.id,
                     userOrRoom.id
                 );
@@ -63,7 +70,7 @@ function ChatsPanel() {
                          }}
                     >
                         <div className="container-image-and-online">
-                            <div className={conectedUsers.includes(userOrRoom.id) ? "online" : "offline"}></div>{unReadMessagesCountByChat}
+                            <div className={conectedUsers.includes(userOrRoom.id) ? "online" : "offline"}></div>{messageCount}
                         </div>
                         {lastMessageSender ? (
                             <div className="container-user-chat-content">

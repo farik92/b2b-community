@@ -7,8 +7,8 @@ export interface LoginData {
 export interface RegisterData {
   id: number;
   name: string;
-  email: string;
-  password: string;
+  //email: string;
+  //password: string;
   image: string;
   createdAt: string;
 }
@@ -20,8 +20,8 @@ export interface ChildrenType {
 export interface UsersAndRooms {
   id: number;
   name: string;
-  email: string;
-  password: string;
+  //email: string;
+  //password: string;
   image: string;
   members: number[];
   createdAt: string;

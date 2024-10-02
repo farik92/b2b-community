@@ -7,6 +7,7 @@ export interface Message {
   createdAt: string;
   type: string;
   receiverId: number;
+  isRead: boolean;
 }
 
 export interface SenderStringMessage {
@@ -16,4 +17,5 @@ export interface SenderStringMessage {
   createdAt: string;
   type: string;
   receiverId: number;
+  isRead: boolean;
 }

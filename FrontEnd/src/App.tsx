@@ -5,17 +5,10 @@ import SocketProvider from "./contexts/SocketContext";
 function App() {
   return (
       <UserProvider>
-        <SocketWrapper>
-        </SocketWrapper>
+          <SocketProvider>
+              <Chat />
+          </SocketProvider>
       </UserProvider>
-  );
-}
-
-function SocketWrapper() {
-  return (
-    <SocketProvider>
-      <Chat />
-    </SocketProvider>
   );
 }
 

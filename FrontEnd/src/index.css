@@ -1,11 +1,10 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: rgba(1, 5, 8, 0.9);
-  color: white;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  overflow-y: hidden;
-  overflow-x: hidden;
+  background-color: #f3f8ff;
+  color: #fff;
+  font-family: "Inter-Medium", sans-serif;
+  font-size: 16px;
 }
 
 #root {
@@ -27,7 +26,7 @@ body {
 }
 
 .navbar h1 {
-  margin: 0px 0px 0px 20px;
+  margin: 0 0 0 20px;
 }
 
 .button-logout {
@@ -133,7 +132,7 @@ body {
 /* CHATS PANEL */
 
 .chats-panel {
-  background-color: #51535e44;
+  background-color: #fff;
   width: 450px;
   height: auto;
   margin: 90px 20px 0 50px;
@@ -192,9 +191,10 @@ body {
   display: flex;
   align-items: center;
   cursor: pointer;
-  border-bottom: 1px solid rgba(252, 252, 252, 0.05);
+  border-bottom: 1px solid gray;
   padding: 5px 15px 5px 10px;
   font-size: 20px;
+  color: #000;
 }
 
 .sender-content {
@@ -424,7 +424,7 @@ body {
 
 .container-none {
   min-width: 380px;
-  background-color: #51535e44;
+  background-color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -432,6 +432,7 @@ body {
   width: 850px;
   height: 815px;
   margin: 100px 20px 20px;
+  color: #000;
 }
 
 .update-profile {
