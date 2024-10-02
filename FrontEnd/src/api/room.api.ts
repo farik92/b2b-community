@@ -13,6 +13,7 @@ export const getRoomByNameRequest = async (roomName: string) => {
 
 export const getRoomsByUserRequest = async (id: number) => {
   //Select Room By User
+  console.log(id);
   const request = await axios.get(`/rooms/getByUser/${id}`, {
     headers: {
       Authorization: `Bearer ${sessionStorage.getItem("token")}`,

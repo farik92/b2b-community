@@ -24,12 +24,15 @@ export const useGetAllUsersAndRooms = (authName: number) => {
   const { user } = useUserContext();
   useEffect(() => {
     const getAllUsersAndRooms = async () => {
-      const userdata = await getAllUsersRequest();
-      const roomsdata = await getRoomsByUserRequest(user.id);
-      const finalData = userdata.filter((element: RegisterData) => element.id !== authName);
-      setUsersAndRooms([...finalData, ...roomsdata]);
+      if(user.id) {
+        const userdata = await getAllUsersRequest();
+        const roomsdata = await getRoomsByUserRequest(user.id);
+        const finalData = userdata.filter((element: RegisterData) => element.id !== authName);
+        setUsersAndRooms([...finalData, ...roomsdata]);
+      }
     };
-    getAllUsersAndRooms();
+      getAllUsersAndRooms();
+
   }, [socket]);
   return { usersAndRooms };
 };
