@@ -43,13 +43,6 @@ body {
   padding: 10px;
 }
 
-.room-error {
-  text-align: center;
-  background-color: red;
-  color: white;
-  padding: 5px;
-}
-
 
 /* CHATS PANEL */
 
@@ -94,15 +87,6 @@ body {
   height: auto;
   bottom: 10px;
   left: 10px;
-}
-
-.user-image {
-  width: 70px;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  margin-left: 5px;
-  margin-right: 10px;
 }
 
 .online {
@@ -161,190 +145,6 @@ body {
   margin-left: 8px;
 }
 
-.profile-image-mini,
-.rooms-image-mini {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  border-radius: 50%;
-  float: right;
-  cursor: pointer;
-  transform: translateY(-4px);
-}
-
-.rooms-image-mini {
-  margin-right: 10px;
-}
-
-/* profile */
-
-.profile-image {
-  width: 180px;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-.container-input-and-profile-image {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.input-and-profile-image {
-  margin-top: 10px;
-  position: relative;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-}
-
-.input-and-profile-image input[type="file"] {
-  position: absolute;
-  width: 180px;
-  height: 180px;
-  opacity: 0;
-  cursor: pointer;
-  border-radius: 50%;
-}
-
-.input-and-profile-image:hover::after {
-  position: absolute;
-  top: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 180px;
-  height: 180px;
-  background-color: rgba(87, 87, 87, 0.473);
-  border-radius: 50%;
-  content: "Change Profile Image";
-  color: white;
-  cursor: pointer;
-  font-size: 18px;
-  pointer-events: none;
-}
-
-.button-delete {
-  position: absolute;
-  background-color: rgb(218, 40, 40);
-  padding: 5px 10px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  bottom: 0;
-  left: 25%;
-}
-
-.button-delete:hover {
-  background-color: rgb(168, 31, 31);
-}
-
-/* CREATE ROOM */
-
-.button-set-rooms {
-  position: absolute;
-  border: none;
-  cursor: pointer;
-  right: 70px;
-}
-
-.create-room {
-  width: 455px;
-  height: 700px;
-  overflow-y: scroll;
-  scroll-behavior: smooth;
-}
-
-.container-h2-span-input-button-h3 {
-  margin: 15px 15px 5px 15px;
-}
-
-.h3-create-room {
-  margin: 5px 0;
-}
-
-.select-users {
-  margin: 10px 0;
-}
-
-/* room */
-
-.input-room-image-and-text-button {
-  display: flex;
-  align-items: center;
-}
-
-.room-image {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-.input-and-room-image {
-  margin-top: 10px;
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-}
-
-.input-and-room-image input[type="file"] {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  opacity: 0;
-  cursor: pointer;
-  border-radius: 50%;
-}
-
-.input-and-room-image:hover::after {
-  position: absolute;
-  top: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 80px;
-  height: 80px;
-  background-color: rgba(87, 87, 87, 0.473);
-  border-radius: 50%;
-  content: "";
-  cursor: pointer;
-  pointer-events: none;
-}
-
-.text-and-button {
-  width: 100%;
-}
-
-.input-room-name {
-  background-color: rgb(255, 255, 255);
-  width: 70%;
-  border: none;
-  outline: none;
-  padding: 8px;
-  font-size: 16px;
-  margin: 10px;
-}
-
-.input-room-name::placeholder {
-  color: rgb(175, 175, 175);
-}
-
-.button-create-room {
-  background-color: #23a9d1;
-  border: none;
-  padding: 8px 5px;
-  cursor: pointer;
-  border-radius: 2px;
-  font-weight: bold;
-}
-
-.button-create-room:hover {
-  background-color: #1b82a1;
-}
 /* CHAT NONE */
 
 .container-none {
@@ -359,12 +159,6 @@ body {
   margin: 0;
   color: #000;
   padding: 0;
-}
-
-.update-profile {
-  width: 410px;
-  height: 700px;
-  padding: 20px;
 }
 
 /* CHAT */
@@ -406,6 +200,21 @@ body {
   padding: 20px 15px 0 20px;
   overflow-y: scroll;
   scroll-behavior: smooth;
+}
+
+.screen>div {
+  position: relative;
+}
+
+.message__read .message-status {
+  width: 5px;
+  height: 5px;
+  display: block;
+  position: absolute;
+  background: greenyellow;
+  border-radius: 10px;
+  right: 5px;
+  top: 5px;
 }
 
 .container ::-webkit-scrollbar {

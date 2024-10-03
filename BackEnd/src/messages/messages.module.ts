@@ -16,6 +16,6 @@ import { Room } from 'src/rooms/entities/rooms.entity';
     TypeOrmModule.forFeature([Room]),
   ],
   controllers: [MessagesController],
-  providers: [MessagesService, WebSocketsGateway, UsersService, RoomsService],
+  providers: [MessagesService, UsersService, RoomsService, WebSocketsGateway],
 })
 export class MessagesModule {}

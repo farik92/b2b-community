@@ -1,12 +1,11 @@
-import { FormEvent, useState } from "react";
+import {FormEvent, useState} from "react";
 import { getDateAndHours } from "../functions/getDateAndHours.ts";
 import { useSocketContext } from "../contexts/SocketContext.tsx";
 import { useUserContext } from "../contexts/UserContext.tsx";
 import { SenderStringMessage } from "../interfaces/message.interfaces.ts";
-import { RegisterData } from "../interfaces/user.interfaces.ts";
 
 function MessagesContainer() {
-  const { user, isMembers } = useUserContext();
+  const { user, isReceiver } = useUserContext();
   const {
     socket,
     userToSend,
@@ -17,7 +16,6 @@ function MessagesContainer() {
     allMessages,
     setAllMessages,
     scrollRef,
-    roomMembers,
   } = useSocketContext();
   const [text, setText] = useState("");
 
@@ -30,8 +28,9 @@ function MessagesContainer() {
         content: text,
         createdAt: dateISO,
         receiverId: userToSend,
+        isRead: false,
       };
-      if (!isMembers.members) setMessages([...messages, completeData]);
+      if (!isReceiver.members) setMessages([...messages, completeData]);
       setAllMessages([...allMessages, { ...completeData, sender: user }]);
       setText("");
     }
@@ -39,35 +38,23 @@ function MessagesContainer() {
 
   return (
       <div className="container">
-        {roomMembers.length > 0 ? (
-            <>
-              <nav className="navbar-chat-with-members">{userToSend}</nav>
-              <div className="container-members">
-                {roomMembers.map((member: RegisterData, index: number) => (
-                    <span key={index} className="sender-content">
-                {member.id}
-                      {roomMembers.length !== index + 1 ? ", " : ""}
-              </span>
-                ))}
-              </div>
-            </>
-        ) : (
-            <nav className="navbar-chat">{userToSendName}</nav>
-        )}
+        <nav className="navbar-chat">{userToSendName}</nav>
         <div className="screen" ref={scrollRef}>
           {messages.map((message: SenderStringMessage, index: number) =>
               message.sender === user.id ? (
-                  <div key={index} className="right">
+                  <div key={index} className={`right message__${message.isRead ? 'read' : 'unread'}`}>
                     <span className="sender">Вы<span className="hour">{getDateAndHours(message.createdAt)}</span></span>
                     <p className="content">{message.content}</p>
+                    <span className="message-status"></span>
                   </div>
               ) : message.sender === userToSend || message.receiverId === userToSend ? (
-                  <div key={index} className="left">
+                  <div key={index} className={`left message__${message.isRead ? 'read' : 'unread'}`}>
                     <span className="sender">
                       {userToSendName}
                       <span className="hour">{getDateAndHours(message.createdAt)}</span>
                     </span>
                     <p className="content">{message.content}</p>
+                    <span className="message-status"></span>
                   </div>
               ) : (
                   ""

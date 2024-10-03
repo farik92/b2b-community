@@ -2,15 +2,12 @@ import {useEffect, useState} from "react";
 import {getMessagesReceiverRequest, markMessageAsRead} from "../api/messages.api";
 import {Message} from "../interfaces/message.interfaces";
 
-export const useGetAllMessages = (receiver: { id: number; members: number[] | undefined }) => {
-    let finalReceiver;
-    receiver && receiver.members
-        ? (finalReceiver = {data: receiver.members, id: receiver.id})
-        : (finalReceiver = {id: receiver.id});
+export const useGetAllMessages = (receiver: { id: number }) => {
+    const finalReceiver  = {id: receiver.id};
     const [messages, setMessages] = useState<Message[]>([]);
 
     useEffect(() => {
-        // setMessages([]);
+        setMessages([]);
         if (receiver.id) {
             const getMessagesReceiver = async () => {
                 const data = await getMessagesReceiverRequest(finalReceiver);

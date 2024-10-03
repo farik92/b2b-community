@@ -3,11 +3,10 @@ import { useUserContext } from "../contexts/UserContext.tsx";
 import { useSocketContext } from "../contexts/SocketContext.tsx";
 import ChatsPanel from "../components/ChatsPanel.tsx";
 import MessagesContainer from "../components/MessagesContainer.tsx";
-import CreateRoom from "../components/CreateRoom.tsx";
 
 function Chat() {
     const { user } = useUserContext();
-    const { userToSend, messages, panel, setPanel, scrollRef, unReadMessagesCount } = useSocketContext();
+    const { userToSend, messages, setPanel, scrollRef, unReadMessagesCount } = useSocketContext();
 
     useEffect(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -26,11 +25,7 @@ function Chat() {
                         Чаты {unReadMessagesCount.count === 0 ? '' : unReadMessagesCount.count}
                     </span>
                 </nav>
-                {panel === "chats" ? (
-                    <ChatsPanel/>
-                ) : (
-                    <CreateRoom/>
-                )}
+                <ChatsPanel/>
             </div>
             {userToSend !== "none" ? (
                 <MessagesContainer/>

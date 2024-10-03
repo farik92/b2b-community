@@ -4,14 +4,14 @@ import { Message } from './entities/messages.entity';
 import { Repository } from 'typeorm';
 import { CreateMessageDto, finalReceiverDto } from './dto/messages.dto';
 import { UsersService } from 'src/users/users.service';
-/*import { WebSocketsGateway } from '../socket/websockets.gateway';*/
+//import { WebSocketsGateway } from '../socket/websockets.gateway';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectRepository(Message) private messageRepository: Repository<Message>,
     private usersService: UsersService,
-    /*private socket: WebSocketsGateway,*/
+    //private socketGateway: WebSocketsGateway,
   ) {}
 
   async getAllMessages(req: Request) {

@@ -34,8 +34,20 @@ export class MessagesController {
     return this.messagesService.getMessagesByReceiver(req, finalReceiver);
   }
   @Post('/post')
-  createMessageEndpoint(@Body() newMessage: CreateMessageDto) {
+  async createMessageEndpoint(@Body() newMessage: CreateMessageDto) {
     //return this.messagesService.postMessage(newMessage);
+    console.log(
+      this.socketServer.clients.map((c) => c.socket.handshake.auth.userId),
+    );
+    this.socketServer.clients
+      .filter((s) => s.user === newMessage.receiverId)
+      .forEach((s) =>
+        s.socket.emit('message', {
+          ...newMessage,
+          type: 'user',
+          sender: { id: newMessage.sender },
+        }),
+      );
     return this.messagesService.postMessage(newMessage);
   }
   @Post('read/:id')

@@ -1,5 +1,5 @@
 import {useState, useEffect, createContext, useContext, useRef} from "react";
-import {ChildrenType, RegisterData, UsersAndRooms} from "../interfaces/user.interfaces";
+import {ChildrenType, RegisterData} from "../interfaces/user.interfaces";
 import {Socket, io} from "socket.io-client";
 import {useUserContext} from "./UserContext";
 import {Message} from "../interfaces/message.interfaces";
@@ -11,20 +11,19 @@ const socketContext = createContext<any>(undefined);
 export function useSocketContext() {
     return useContext(socketContext);
 }
+
 const SocketProvider = (props: ChildrenType) => {
-    const {user, isAuthenticated, isMembers} = useUserContext();
+    const {user, isAuthenticated, isReceiver} = useUserContext();
     const [unReadMessagesCount, setUnReadMessagesCount] = useState<{ count?: number }>({});
     const [userToSend, setUserToSend] = useState("none");
     const [userToSendName, setUserToSendName] = useState("none");
-    const {messages, setMessages} = useGetAllMessages(isMembers);
+    const {messages, setMessages} = useGetAllMessages(isReceiver);
     const [conectedUsers, setConectedUsers] = useState<string[]>([]);
     const [socket, setSocket] = useState<Socket>();
     const [allMessages, setAllMessages] = useState<Message[]>([]);
     const [panel, setPanel] = useState("chats");
     const scrollRef = useRef<HTMLDivElement>(null);
     const dateISO = new Date().toISOString();
-    const [roomMembers, setRoomMembers] = useState<RegisterData[]>([]);
-    const [room, setRoom] = useState({name: ""});
     const [usersAndRooms, setUsersAndRooms] = useState<RegisterData[]>([]);
 
     useEffect(() => {
@@ -36,8 +35,8 @@ const SocketProvider = (props: ChildrenType) => {
     }, [messages]);
 
     useEffect(() => {
-        const socket = io("http://localhost:3000", {
-            auth: {userId: user.id, receiverId: userToSend},
+        const socket = io(import.meta.env.VITE_SERVER_HOST, {
+            auth: {userId: user.id, receiverId: userToSend, token: sessionStorage.getItem('token')},
         });
         setSocket(socket);
         return () => {
@@ -72,27 +71,13 @@ const SocketProvider = (props: ChildrenType) => {
                 socket.off("unReadMessagesCount");
             };
         }
-    }, [socket]);
+    }, [socket, messages]);
 
     useEffect(() => {
         if (socket) {
             socket.on("getOnlineUsers", (names: string[]) => setConectedUsers(names));
             return () => {
                 socket.off("getOnlineUsers", (names: string[]) => setConectedUsers(names));
-            };
-        }
-    }, [socket]);
-
-    useEffect(() => {
-        if (socket) {
-            const addClientToRoomHandler = (data: UsersAndRooms) => {
-                console.log({...data, createdAt: dateISO});
-                const finalData = {...data, createdAt: dateISO};
-                setUsersAndRooms((prevState) => [...prevState, finalData]);
-            };
-            socket.on("addClientToRoom", addClientToRoomHandler);
-            return () => {
-                socket.off("addClientToRoom", addClientToRoomHandler);
             };
         }
     }, [socket]);
@@ -115,12 +100,8 @@ const SocketProvider = (props: ChildrenType) => {
                 panel,
                 setPanel,
                 scrollRef,
-                roomMembers,
-                room,
-                setRoom,
                 usersAndRooms,
                 setUsersAndRooms,
-                setRoomMembers,
             }}
         >
             {props.children}
