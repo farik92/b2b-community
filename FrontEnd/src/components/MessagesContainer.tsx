@@ -1,4 +1,4 @@
-import {FormEvent, useState} from "react";
+import { FormEvent, useState } from "react";
 import { getDateAndHours } from "../functions/getDateAndHours.ts";
 import { useSocketContext } from "../contexts/SocketContext.tsx";
 import { useUserContext } from "../contexts/UserContext.tsx";
@@ -37,44 +37,58 @@ function MessagesContainer() {
   };
 
   return (
-      <div className="container">
-        <nav className="navbar-chat">{userToSendName}</nav>
-        <div className="screen" ref={scrollRef}>
-          {messages.map((message: SenderStringMessage, index: number) =>
-              message.sender === user.id ? (
-                  <div key={index} className={`right message__${message.isRead ? 'read' : 'unread'}`}>
-                    <span className="sender">Вы<span className="hour">{getDateAndHours(message.createdAt)}</span></span>
-                    <p className="content">{message.content}</p>
-                    <span className="message-status"></span>
-                  </div>
-              ) : message.sender === userToSend || message.receiverId === userToSend ? (
-                  <div key={index} className={`left message__${message.isRead ? 'read' : 'unread'}`}>
-                    <span className="sender">
-                      {userToSendName}
-                      <span className="hour">{getDateAndHours(message.createdAt)}</span>
-                    </span>
-                    <p className="content">{message.content}</p>
-                    <span className="message-status"></span>
-                  </div>
-              ) : (
-                  ""
-              )
-          )}
-        </div>
-        <form className="chat-form" onSubmit={textHandleSubmit}>
-          <input
-              className="input-chat"
-              id="input"
-              value={text}
-              type="text"
-              onChange={(e) => setText(e.target.value)}
-              autoFocus
-              spellCheck
-              autoComplete="off"
-          />
-          <button className="button-chat">Отправить</button>
-        </form>
+    <div className="container">
+      <nav className="navbar-chat">{userToSendName}</nav>
+      <div className="screen" ref={scrollRef}>
+        {messages.map((message: SenderStringMessage, index: number) =>
+          message.sender === user.id ? (
+            <div
+              key={index}
+              className={`right message__${message.isRead ? "read" : "unread"}`}
+            >
+              <span className="sender">
+                Вы
+                <span className="hour">
+                  {getDateAndHours(message.createdAt)}
+                </span>
+              </span>
+              <p className="content">{message.content}</p>
+              <span className="message-status"></span>
+            </div>
+          ) : message.sender === userToSend ||
+            message.receiverId === userToSend ? (
+            <div
+              key={index}
+              className={`left message__${message.isRead ? "read" : "unread"}`}
+            >
+              <span className="sender">
+                {userToSendName}
+                <span className="hour">
+                  {getDateAndHours(message.createdAt)}
+                </span>
+              </span>
+              <p className="content">{message.content}</p>
+              <span className="message-status"></span>
+            </div>
+          ) : (
+            ""
+          ),
+        )}
       </div>
+      <form className="chat-form" onSubmit={textHandleSubmit}>
+        <input
+          className="input-chat"
+          id="input"
+          value={text}
+          type="text"
+          onChange={(e) => setText(e.target.value)}
+          autoFocus
+          spellCheck
+          autoComplete="off"
+        />
+        <button className="button-chat">Отправить</button>
+      </form>
+    </div>
   );
 }
 

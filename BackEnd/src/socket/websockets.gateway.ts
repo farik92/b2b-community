@@ -64,7 +64,6 @@ export class WebSocketsGateway
         });
         if (!this.usersHandle.includes(userId)) this.usersHandle.push(userId);
         this.server.emit('getOnlineUsers', this.usersHandle);
-        console.log(this.usersHandle);
 
         const unReadMessagesCount =
           await this.messageService.unReadCount(userId);
@@ -77,7 +76,6 @@ export class WebSocketsGateway
 
   async handleDisconnect(@ConnectedSocket() socket: Socket) {
     try {
-      console.log(socket.handshake.auth);
       const { userId } = socket.handshake.auth;
       if (userId) {
         console.log(`${userId} with id: ${socket.id} Disconnected `);
@@ -102,10 +100,14 @@ export class WebSocketsGateway
     @MessageBody() content: string,
     @ConnectedSocket() socket: Socket,
   ) {
+    console.log('NewMsgContent: ', content);
     try {
       const { userId, receiverId } = socket.handshake.auth;
       const finalData = { sender: userId, content, receiverId };
-
+      await this.messageService.postMessage({
+        ...finalData,
+        type: 'user',
+      });
       for (const client of this.clients) {
         if (client.user === receiverId) {
           const senderUser = await this.usersService.getUser(userId);
@@ -122,15 +124,37 @@ export class WebSocketsGateway
             .emit('unReadMessagesCount', unReadMessagesCount);
         }
       }
-      await this.messageService.postMessage({
-        ...finalData,
-        type: 'user',
-      });
     } catch (error) {
       console.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  /*  @SubscribeMessage('unReadMessagesCount')
+  async handleUnReadMessagesCount(
+    @MessageBody() content: number,
+    @ConnectedSocket() socket: Socket,
+  ) {
+    const { userId, receiverId } = socket.handshake.auth;
+    for (const client of this.clients) {
+      if (client.user === userId) {
+        const unReadMessagesCount =
+          await this.messageService.unReadCount(userId);
+        this.server
+          .to(client.id)
+          .emit('unReadMessagesCount', unReadMessagesCount);
+      }
+      if (client.user === receiverId) {
+        const unReadMessagesCount =
+          await this.messageService.unReadCount(receiverId);
+        this.server
+          .to(client.id)
+          .emit('unReadMessagesCount', unReadMessagesCount);
+      }
+    }
+    console.log('unReadMessagesCount Получатель: ', userId);
+    console.log('unReadMessagesCount Отправитель: ', receiverId);
+  }*/
 
   @SubscribeMessage('markMessageAsRead')
   async handleMarkMessageAsRead(
@@ -141,14 +165,8 @@ export class WebSocketsGateway
       userId?: number;
     },
   ) {
-    await this.messageService.markMessageAsRead(payload.message_ID);
     console.log(payload);
-    if (payload.roomId) {
-      this.server.to(`room_${payload.roomId}`).emit('markMessageAsRead', {
-        message_ID: payload.message_ID,
-      });
-    }
-
+    //await this.messageService.markMessageAsRead(payload.id);
     if (payload.userId) {
       const client = this.clients.find(
         (client) => client.user === payload.userId,
@@ -158,47 +176,6 @@ export class WebSocketsGateway
           message_ID: payload.message_ID,
         });
       }
-    }
-  }
-
-  @SubscribeMessage('createRoom')
-  async createRoom(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() data: CreateRoomDto,
-  ) {
-    try {
-      const { name, creator } = data;
-      socket.join(name);
-      console.log(`Client ${socket.id} create room ${name}`);
-      this.roomsService.postRoom({ name, creator, members: [creator] });
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @SubscribeMessage('addClientToRoom')
-  async handleAddClientToRoom(@MessageBody() data: CreateRoomDto) {
-    try {
-      const { name, creator, members } = data;
-      members.forEach((member: number) => {
-        this.clients.forEach(async (client: ClientDto) => {
-          if (member === client.user) {
-            client.socket.join(name);
-            data.image;
-            this.server.to(client.id).emit('addClientToRoom', {
-              ...data,
-              members: [...data.members, creator],
-              image: data.url,
-            });
-            console.log(`Client ${member} joined room ${name}`);
-          }
-        });
-      });
-      this.roomsService.postRoom({ name, creator, members });
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

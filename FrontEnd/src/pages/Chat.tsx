@@ -5,40 +5,43 @@ import ChatsPanel from "../components/ChatsPanel.tsx";
 import MessagesContainer from "../components/MessagesContainer.tsx";
 
 function Chat() {
-    const { user } = useUserContext();
-    const { userToSend, messages, setPanel, scrollRef, unReadMessagesCount } = useSocketContext();
+  const { user } = useUserContext();
+  const { userToSend, messages, setPanel, scrollRef, unReadMessagesCount } =
+    useSocketContext();
 
-    useEffect(() => {
-        if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }, [messages]);
+  useEffect(() => {
+    if (scrollRef.current)
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages]);
 
-    return (
-        <>
-            <div className="chats-panel">
-                <nav className="chats-navbar">
-                    <span
-                        onClick={() => {
-                            setPanel("chats");
-                        }}
-                        className="span-chats"
-                    >
-                        Чаты {unReadMessagesCount.count === 0 ? '' : unReadMessagesCount.count}
-                    </span>
-                </nav>
-                <ChatsPanel/>
-            </div>
-            {userToSend !== "none" ? (
-                <MessagesContainer/>
-            ) : (
-                <div className="container-none">
-                <div>
-                        <h2>Добро пожаловать, {user.name}!</h2>
-                        <h2>Выберите чат, чтобы начать общение</h2>
-                    </div>
-                </div>
-            )}
-        </>
-    );
+  return (
+    <>
+      <div className="chats-panel">
+        <nav className="chats-navbar">
+          <span
+            onClick={() => {
+              setPanel("chats");
+            }}
+            className="span-chats"
+          >
+            Чаты{" "}
+            {unReadMessagesCount.count === 0 ? "" : unReadMessagesCount.count}
+          </span>
+        </nav>
+        <ChatsPanel />
+      </div>
+      {userToSend !== "none" ? (
+        <MessagesContainer />
+      ) : (
+        <div className="container-none">
+          <div>
+            <h2>Добро пожаловать, {user.name}!</h2>
+            <h2>Выберите чат, чтобы начать общение</h2>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default Chat;

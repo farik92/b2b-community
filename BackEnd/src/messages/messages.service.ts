@@ -58,7 +58,6 @@ export class MessagesService {
 
   async getAllMessagesByUserId(id: number) {
     try {
-      console.log('All messages by user id: ', id);
       const authUserMessages = await this.messageRepository
         .createQueryBuilder('message')
         .leftJoinAndSelect('message.sender', 'sender')
@@ -100,7 +99,6 @@ export class MessagesService {
 
   async getMessagesByReceiver(req: Request, receiver: finalReceiverDto) {
     try {
-      console.log('Messages by receiver: ', receiver);
       if (typeof receiver.data === 'object') {
         return await this.messageRepository.find({
           relations: ['sender'],
@@ -136,7 +134,6 @@ export class MessagesService {
       /*this.socket.server
         .to(String(newMessage.receiverId))
         .emit('message', newMessage.content);*/
-      console.log('New message: ', newMessage);
       const newMessageCreated = this.messageRepository.create(newMessage);
       //console.log(newMessageCreated);
       return this.messageRepository.save(newMessageCreated);
@@ -146,18 +143,21 @@ export class MessagesService {
     }
   }
 
-  async markMessageAsRead(message_ID: number) {
-    console.log('You read message: ', message_ID);
+  async markMessageAsRead(receiverId: number, senderId: number) {
+    console.log('Получатель: ', senderId);
+    console.log('Отправитель: ', receiverId);
     await this.messageRepository
       .createQueryBuilder()
       .update(Message)
       .set({ isRead: true })
-      .where('message_ID = :message_ID AND isRead = false', { message_ID })
+      .where(
+        'receiverId = :senderId AND senderId = :receiverId AND isRead = false',
+        { receiverId, senderId },
+      )
       .execute();
   }
 
   async unReadCount(receiverId: number) {
-    console.log('Unread message count');
     return await this.messageRepository
       .createQueryBuilder('message')
       .where('receiverId = :receiverId AND isRead = false', { receiverId })
@@ -165,7 +165,6 @@ export class MessagesService {
   }
 
   async unReadCountByChat(receiverId: number, senderId: number) {
-    console.log('Unread message count by chat');
     return await this.messageRepository
       .createQueryBuilder('message')
       .where(

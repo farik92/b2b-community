@@ -5,7 +5,6 @@ import {
   Post,
   Request,
   UseGuards,
-  Param,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto, finalReceiverDto } from './dto/messages.dto';
@@ -36,9 +35,7 @@ export class MessagesController {
   @Post('/post')
   async createMessageEndpoint(@Body() newMessage: CreateMessageDto) {
     //return this.messagesService.postMessage(newMessage);
-    console.log(
-      this.socketServer.clients.map((c) => c.socket.handshake.auth.userId),
-    );
+    //this.socketServer.clients.map((c) => c.socket.handshake.auth.userId);
     this.socketServer.clients
       .filter((s) => s.user === newMessage.receiverId)
       .forEach((s) =>
@@ -50,9 +47,12 @@ export class MessagesController {
       );
     return this.messagesService.postMessage(newMessage);
   }
-  @Post('read/:id')
-  markMessageAsRead(@Param('id') id: number) {
-    return this.messagesService.markMessageAsRead(id);
+  @Post('read')
+  markMessageAsRead(
+    @Body('id') id: number,
+    @Body('senderId') senderId: number,
+  ) {
+    return this.messagesService.markMessageAsRead(id, senderId);
   }
 
   @Get('test')
