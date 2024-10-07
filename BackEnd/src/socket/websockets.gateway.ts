@@ -11,8 +11,6 @@ import { Server, Socket } from 'socket.io';
 import { MessagesService } from 'src/messages/messages.service';
 import { ClientDto } from './dto/websockets.dto';
 import { UsersService } from 'src/users/users.service';
-import { RoomsService } from 'src/rooms/rooms.service';
-import { CreateRoomDto } from 'src/rooms/dto/rooms.dto';
 import {
   HttpException,
   HttpStatus,
@@ -31,7 +29,6 @@ export class WebSocketsGateway
   constructor(
     private messageService: MessagesService,
     private usersService: UsersService,
-    private roomsService: RoomsService,
     private jwtService: JwtService,
   ) {}
 
