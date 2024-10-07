@@ -51,6 +51,61 @@ body {
   width: auto;
   height: auto;
   margin: 0;
+  min-width: 300px;
+}
+
+.user-search-wrapper {
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  padding: 15px 10px;
+  background: #34606d;
+}
+
+.user-search-wrapper input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 15px;
+  padding: 4px;
+  border: 0;
+  border-radius: 3px;
+}
+
+ul.user-search-list {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  z-index: 99;
+  background: #34606d;
+  padding: 0;
+  margin: 0;
+}
+
+ul.user-search-list li.user-search-list-item {
+  color: #fff;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+span.remove-chat {
+  position: absolute;
+  right: 5px;
+  bottom: 8px;
+  font-size: 10px;
+  line-height: 1;
+  background: red;
+  color: #fff;
+  font-weight: bold;
+  width: 10px;
+  text-align: center;
+  height: 10px;
+  border-radius: 10px;
+  padding: 2px;
+  display: none;
+}
+
+.sender-chat.selected span.remove-chat {
+  display: block;
 }
 
 .chats-navbar {
@@ -74,6 +129,20 @@ body {
 .chats-panel ::-webkit-scrollbar-thumb {
   background: #34606d;
   border-radius: 5px;
+}
+
+.sender-chat.empty-chat {
+  display: none;
+}
+
+.sender-chat.selected.empty-chat {
+  display: block;
+}
+.sender-chat:has(.empty-chat___).selected {
+  display: block;
+}
+.sender-chat:has(.empty-chat___) {
+  display: none;
 }
 
 .container-message-count {
@@ -112,7 +181,7 @@ body {
 }
 
 .sender-content {
-  font-size: 15px;
+  font-size: 12px;
   color: grey;
   font-weight: normal;
   margin: 5px 0;

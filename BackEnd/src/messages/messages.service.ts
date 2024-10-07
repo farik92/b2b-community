@@ -173,4 +173,18 @@ export class MessagesService {
       )
       .getCount();
   }
+
+  async deleteMessagesByParticipants(receiverId: number, senderId: number) {
+    return this.messageRepository
+      .createQueryBuilder('message')
+      .delete()
+      .where(
+        '(receiverId = :receiverId AND senderId = :senderId) OR (receiverId = :senderId AND senderId = :receiverId)',
+        {
+          receiverId,
+          senderId,
+        },
+      )
+      .execute();
+  }
 }

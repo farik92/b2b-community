@@ -42,7 +42,8 @@ export class WebSocketsGateway
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
       const { userId, token } = socket.handshake.auth;
-      if (!token) throw new UnauthorizedException('no token');
+      //if (!token) throw new UnauthorizedException('no token');
+      if (!token) return;
       const { id: secureUserId } = await this.jwtService.verifyAsync(token, {
         secret: process.env.TOKEN_SECURE,
       });

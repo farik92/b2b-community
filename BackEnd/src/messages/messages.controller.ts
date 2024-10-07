@@ -3,8 +3,11 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Request,
   UseGuards,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto, finalReceiverDto } from './dto/messages.dto';
@@ -54,7 +57,16 @@ export class MessagesController {
   ) {
     return this.messagesService.markMessageAsRead(id, senderId);
   }
-
+  @Delete(':receiverId/:senderId')
+  async deleteMessagesByParticipants(
+    @Param('receiverId', ParseIntPipe) receiverId: number,
+    @Param('senderId', ParseIntPipe) senderId: number,
+  ) {
+    return await this.messagesService.deleteMessagesByParticipants(
+      receiverId,
+      senderId,
+    );
+  }
   @Get('test')
   test() {
     return this.socketServer.test();

@@ -45,3 +45,16 @@ export const markMessageAsRead = async (id: number, senderId: number) => {
   );
   return request.data;
 };
+
+export const deleteMessagesByParticipantsRequest = async (
+  receiverId: number,
+  senderId: number,
+) => {
+  const token = sessionStorage.getItem("token");
+  const request = await axios.delete(`/messages/${receiverId}/${senderId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return request.data;
+};

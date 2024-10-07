@@ -6,28 +6,19 @@ import MessagesContainer from "../components/MessagesContainer.tsx";
 
 function Chat() {
   const { user } = useUserContext();
-  const { userToSend, messages, setPanel, scrollRef, unReadMessagesCount } =
+  const { userToSend, messages, scrollRef, unReadMessagesCount } =
     useSocketContext();
 
   useEffect(() => {
-    if (scrollRef.current)
+    if (scrollRef.current) {
+      console.log("unReadMessagesCount: ", unReadMessagesCount);
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages]);
 
   return (
     <>
       <div className="chats-panel">
-        <nav className="chats-navbar">
-          <span
-            onClick={() => {
-              setPanel("chats");
-            }}
-            className="span-chats"
-          >
-            Чаты{" "}
-            {unReadMessagesCount.count === 0 ? "" : unReadMessagesCount.count}
-          </span>
-        </nav>
         <ChatsPanel />
       </div>
       {userToSend !== "none" ? (
