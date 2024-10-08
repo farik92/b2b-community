@@ -4,8 +4,11 @@ import { Socket, io } from "socket.io-client";
 import { useUserContext } from "./UserContext";
 import { Message } from "../interfaces/message.interfaces";
 import { useGetAllMessages } from "../hooks/messages.hooks";
-import { getAllMessagesRequest } from "../api/messages.api";
-import { useVisibilityChange } from "../hooks/useVisibilityState.hooks";
+import {
+  deleteMessagesByParticipantsRequest,
+  getAllMessagesRequest,
+} from "../api/messages.api";
+//import { useVisibilityChange } from "../hooks/useVisibilityState.hooks";
 
 const socketContext = createContext<any>(undefined);
 
@@ -14,14 +17,14 @@ export function useSocketContext() {
 }
 
 const SocketProvider = (props: ChildrenType) => {
-  const { user, isAuthenticated, isReceiver } = useUserContext();
+  const { user, isAuthenticated, isReceiver, setIsReceiver } = useUserContext();
   const [unReadMessagesCount, setUnReadMessagesCount] = useState<{
     count?: number;
   }>({});
   const [userToSend, setUserToSend] = useState("none");
   const [userToSendName, setUserToSendName] = useState("none");
   const { messages, setMessages } = useGetAllMessages(isReceiver);
-  const visibilityChange = useVisibilityChange();
+  //const visibilityChange = useVisibilityChange();
   const [conectedUsers, setConectedUsers] = useState<string[]>([]);
   const [socket, setSocket] = useState<Socket>();
   const [allMessages, setAllMessages] = useState<Message[]>([]);
@@ -29,6 +32,7 @@ const SocketProvider = (props: ChildrenType) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const dateISO = new Date().toISOString();
   const [usersAndRooms, setUsersAndRooms] = useState<RegisterData[]>([]);
+  const [deleteMessages, setDeleteMessages] = useState<number>(0);
 
   useEffect(() => {
     const getMessagesReceiver = async () => {
@@ -52,7 +56,7 @@ const SocketProvider = (props: ChildrenType) => {
     };
   }, [userToSend, isAuthenticated]);
 
-  useEffect(() => {
+  /*  useEffect(() => {
     if (visibilityChange) {
       console.log("visibility status: ", visibilityChange);
       console.log("Получатель: ", userToSend);
@@ -61,7 +65,7 @@ const SocketProvider = (props: ChildrenType) => {
         if (socket) socket.emit("unReadMessagesCount", userToSend);
       }
     }
-  }, [visibilityChange]);
+  }, [visibilityChange]);*/
 
   useEffect(() => {
     if (socket) {
@@ -83,14 +87,22 @@ const SocketProvider = (props: ChildrenType) => {
 
   useEffect(() => {
     if (socket) {
+      socket.emit("markMessageAsRead", {
+        userId: user.id,
+        receiverId: userToSend,
+      });
+      socket.on("markMessageAsRead", (messagesAsRead: any) => {
+        console.log("messagesAsRead: ", messagesAsRead);
+      });
       socket.on("unReadMessagesCount", (count: number) => {
         setUnReadMessagesCount({ count });
       });
       return () => {
+        socket.off("markMessageAsRead");
         socket.off("unReadMessagesCount");
       };
     }
-  }, [socket, messages, isReceiver]);
+  }, [socket, userToSend]);
 
   useEffect(() => {
     if (socket) {
@@ -102,6 +114,21 @@ const SocketProvider = (props: ChildrenType) => {
       };
     }
   }, [socket]);
+
+  useEffect(() => {
+    if (userToSend && user.id && deleteMessages === 1 && isReceiver) {
+      //deleteMessagesByParticipantsRequest(isReceiver, user.id);
+      if (socket) {
+        socket.emit("removeChat", isReceiver);
+        return () => {
+          socket.off("removeChat");
+          setDeleteMessages(0);
+          setUserToSend("none");
+          setIsReceiver(0);
+        };
+      }
+    }
+  }, [deleteMessages, userToSend]);
 
   return (
     <socketContext.Provider
@@ -123,6 +150,8 @@ const SocketProvider = (props: ChildrenType) => {
         scrollRef,
         usersAndRooms,
         setUsersAndRooms,
+        deleteMessages,
+        setDeleteMessages,
       }}
     >
       {props.children}

@@ -25,72 +25,7 @@ export class MessagesService {
         })
         .orderBy('message.message_ID', 'ASC')
         .getMany();
-      const authUserRoomsMessages = authUserMessages.filter(
-        (element) => element.type === 'room',
-      );
-      const promises = authUserRoomsMessages.map((message) => {
-        if (message.receiverId) {
-          return this.messageRepository.find({
-            relations: ['sender'],
-            where: { receiverId: message.receiverId },
-          });
-        } else {
-          return Promise.resolve(undefined);
-        }
-      });
-      const results = await Promise.all(promises);
-      const finalAuthUserRoomsMessages = results
-        .filter((result) => result !== undefined)
-        .flat();
-      const finalAuthUserMessages = authUserMessages.filter(
-        (message) =>
-          !authUserRoomsMessages.some(
-            (authUserRoomsMessage) =>
-              authUserRoomsMessage.receiverId === message.receiverId,
-          ),
-      );
-      return [...finalAuthUserMessages, ...finalAuthUserRoomsMessages];
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async getAllMessagesByUserId(id: number) {
-    try {
-      const authUserMessages = await this.messageRepository
-        .createQueryBuilder('message')
-        .leftJoinAndSelect('message.sender', 'sender')
-        .where('(message.sender = :id) OR (message.receiverId = :id)', {
-          id,
-        })
-        .orderBy('message.message_ID', 'ASC')
-        .getMany();
-      const authUserRoomsMessages = authUserMessages.filter(
-        (element) => element.type === 'room',
-      );
-      const promises = authUserRoomsMessages.map((message) => {
-        if (message.receiverId) {
-          return this.messageRepository.find({
-            relations: ['sender'],
-            where: { receiverId: message.receiverId },
-          });
-        } else {
-          return Promise.resolve(undefined);
-        }
-      });
-      const results = await Promise.all(promises);
-      const finalAuthUserRoomsMessages = results
-        .filter((result) => result !== undefined)
-        .flat();
-      const finalAuthUserMessages = authUserMessages.filter(
-        (message) =>
-          !authUserRoomsMessages.some(
-            (authUserRoomsMessage) =>
-              authUserRoomsMessage.receiverId === message.receiverId,
-          ),
-      );
-      return [...finalAuthUserMessages, ...finalAuthUserRoomsMessages];
+      return authUserMessages;
     } catch (error) {
       console.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);

@@ -6,12 +6,10 @@ import MessagesContainer from "../components/MessagesContainer.tsx";
 
 function Chat() {
   const { user } = useUserContext();
-  const { userToSend, messages, scrollRef, unReadMessagesCount } =
-    useSocketContext();
+  const { userToSend, messages, scrollRef } = useSocketContext();
 
   useEffect(() => {
     if (scrollRef.current) {
-      console.log("unReadMessagesCount: ", unReadMessagesCount);
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);

@@ -5,13 +5,10 @@ import { getDateAndHours } from "../functions/getDateAndHours";
 import { Message } from "../interfaces/message.interfaces";
 import { UsersAndRooms } from "../interfaces/user.interfaces";
 import UserSearch from "../components/UserSearch";
-import { useEffect, useState } from "react";
-import { deleteMessagesByParticipantsRequest } from "../api/messages.api";
 
 // import {useEffect, useMemo} from "react";
 
 function ChatsPanel() {
-  console.log("App rendered");
   const { user, setIsReceiver } = useUserContext();
   const {
     conectedUsers,
@@ -21,16 +18,7 @@ function ChatsPanel() {
     allMessages,
   } = useSocketContext();
   const { usersAndRooms } = useGetAllUsersAndRooms(user.id);
-  const [deleteMessages, setDeleteMessages] = useState<number>(0);
-
-  useEffect(() => {
-    if (userToSend && user.id && deleteMessages === 1) {
-      const del = deleteMessagesByParticipantsRequest(userToSend, user.id);
-      console.log(del);
-      setDeleteMessages(0);
-      setUserToSend("none");
-    }
-  }, [deleteMessages]);
+  const { setDeleteMessages } = useSocketContext();
 
   const getLastMessage = (sender: number, receiverId: number) => {
     if (!allMessages) return [undefined, undefined, undefined];

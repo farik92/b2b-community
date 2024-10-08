@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import {
   deleteMessagesByParticipantsRequest,
   getMessagesReceiverRequest,
-  markMessageAsRead,
+  //markMessageAsRead,
 } from "../api/messages.api";
 import { Message } from "../interfaces/message.interfaces";
-import { useUserContext } from "../contexts/UserContext.tsx";
+//import { useUserContext } from "../contexts/UserContext.tsx";
 
 export const useGetAllMessages = (receiver: { id: number }) => {
-  const { user } = useUserContext();
+  //const { user } = useUserContext();
   const finalReceiver = { id: receiver.id };
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -17,7 +17,7 @@ export const useGetAllMessages = (receiver: { id: number }) => {
     if (receiver.id) {
       const getMessagesReceiver = async () => {
         const data = await getMessagesReceiverRequest(finalReceiver);
-        await markMessageAsRead(finalReceiver.id, user.id);
+        //await markMessageAsRead(finalReceiver.id, user.id);
         if (data)
           for (let i = 0; i < data.length; i++) {
             data[i].sender = data[i].sender.id;

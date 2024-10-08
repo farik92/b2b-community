@@ -1,4 +1,5 @@
 {
+  "packageManager": "npm@10.8.3",
   "name": "b2b-community",
   "version": "1.0.0",
   "description": "",
@@ -13,6 +14,6 @@
     "/*"
   ],
   "devDependencies": {
-    "turbo": "^1.13.3"
+    "turbo": "^2.1.3"
   }
 }

@@ -11,8 +11,6 @@ import { Server, Socket } from 'socket.io';
 import { MessagesService } from 'src/messages/messages.service';
 import { ClientDto } from './dto/websockets.dto';
 import { UsersService } from 'src/users/users.service';
-import { RoomsService } from 'src/rooms/rooms.service';
-import { CreateRoomDto } from 'src/rooms/dto/rooms.dto';
 import {
   HttpException,
   HttpStatus,
@@ -31,7 +29,6 @@ export class WebSocketsGateway
   constructor(
     private messageService: MessagesService,
     private usersService: UsersService,
-    private roomsService: RoomsService,
     private jwtService: JwtService,
   ) {}
 
@@ -161,23 +158,36 @@ export class WebSocketsGateway
   async handleMarkMessageAsRead(
     @MessageBody()
     payload: {
-      message_ID: number;
-      roomId?: number;
-      userId?: number;
+      userId: number;
+      receiverId: number;
     },
   ) {
-    console.log(payload);
-    //await this.messageService.markMessageAsRead(payload.id);
-    if (payload.userId) {
+    if (payload.userId && payload.receiverId !== 0) {
+      await this.messageService.markMessageAsRead(
+        payload.receiverId,
+        payload.userId,
+      );
       const client = this.clients.find(
         (client) => client.user === payload.userId,
       );
       if (client) {
         this.server.to(client.id).emit('markMessageAsRead', {
-          message_ID: payload.message_ID,
+          receiverId: payload.userId,
         });
+
+        const unReadMessagesCount = await this.messageService.unReadCount(
+          payload.userId,
+        );
+        this.server
+          .to(client.id)
+          .emit('unReadMessagesCount', unReadMessagesCount);
       }
     }
+  }
+
+  @SubscribeMessage('removeChat')
+  async handleRemoveChat(@MessageBody() receiverId: number) {
+    console.log(receiverId);
   }
 
   async test() {
