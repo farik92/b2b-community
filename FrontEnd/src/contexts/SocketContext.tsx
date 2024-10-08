@@ -4,10 +4,7 @@ import { Socket, io } from "socket.io-client";
 import { useUserContext } from "./UserContext";
 import { Message } from "../interfaces/message.interfaces";
 import { useGetAllMessages } from "../hooks/messages.hooks";
-import {
-  deleteMessagesByParticipantsRequest,
-  getAllMessagesRequest,
-} from "../api/messages.api";
+import { getAllMessagesRequest } from "../api/messages.api";
 //import { useVisibilityChange } from "../hooks/useVisibilityState.hooks";
 
 const socketContext = createContext<any>(undefined);
