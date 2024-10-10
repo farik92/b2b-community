@@ -41,7 +41,6 @@ const SocketProvider = (props: ChildrenType) => {
   useEffect(() => {
     const getMessagesReceiver = async () => {
       const data = await getAllMessagesRequest();
-      console.log(data);
       setAllMessages(data);
     };
     getMessagesReceiver();
