@@ -8,7 +8,7 @@ import { Message } from "../interfaces/message.interfaces";
 //import { useUserContext } from "../contexts/UserContext.tsx";
 
 export const useGetAllMessages = (receiver: number) => {
-  //const { user } = useUserContext();
+  //const { isReceiver } = useUserContext();
   const finalReceiver = { id: receiver };
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -22,9 +22,10 @@ export const useGetAllMessages = (receiver: number) => {
           for (let i = 0; i < data.length; i++) {
             data[i].sender = data[i].sender.id;
             if (
-              data[i].sender === finalReceiver.id &&
+              data[i].sender.id === finalReceiver.id &&
               data[i].isRead === false
             ) {
+              console.log("fsdfsdfdsfsdfsd");
               data[i].isRead = true;
             }
           }
