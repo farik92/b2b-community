@@ -43,7 +43,7 @@ const UserSearch = ({ users }: any) => {
                 key={user.id}
                 onClick={() => {
                   setQuery("");
-                  setIsReceiver({ id: user.id });
+                  setIsReceiver(user.id);
                   setUserToSend(user.id);
                   setUserToSendName(user.name);
                 }}

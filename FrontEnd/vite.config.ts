@@ -1,10 +1,13 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import singlePlugin from "vite-plugin-css-injected-by-js"
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import singlePlugin from "vite-plugin-css-injected-by-js";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    singlePlugin({ useStrictCSP: true, relativeCSSInjection: false }),
+  ],
   build: {
     rollupOptions: {
       // external: ["react", "react-dom"],
@@ -16,4 +19,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

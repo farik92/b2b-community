@@ -7,14 +7,14 @@ import {
 import { Message } from "../interfaces/message.interfaces";
 //import { useUserContext } from "../contexts/UserContext.tsx";
 
-export const useGetAllMessages = (receiver: { id: number }) => {
+export const useGetAllMessages = (receiver: number) => {
   //const { user } = useUserContext();
-  const finalReceiver = { id: receiver.id };
+  const finalReceiver = { id: receiver };
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     setMessages([]);
-    if (receiver.id) {
+    if (receiver) {
       const getMessagesReceiver = async () => {
         const data = await getMessagesReceiverRequest(finalReceiver);
         //await markMessageAsRead(finalReceiver.id, user.id);
@@ -32,7 +32,7 @@ export const useGetAllMessages = (receiver: { id: number }) => {
       };
       getMessagesReceiver();
     }
-  }, [receiver.id]);
+  }, [receiver]);
   return { messages, setMessages };
 };
 

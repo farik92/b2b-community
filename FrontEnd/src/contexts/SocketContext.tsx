@@ -28,7 +28,7 @@ const SocketProvider = (props: ChildrenType) => {
   const [panel, setPanel] = useState("chats");
   const scrollRef = useRef<HTMLDivElement>(null);
   const dateISO = new Date().toISOString();
-  const [usersAndRooms, setUsersAndRooms] = useState<RegisterData[]>([]);
+  const [users, setUsers] = useState<RegisterData[]>([]);
   const [deleteMessages, setDeleteMessages] = useState<number>(0);
 
   useEffect(() => {
@@ -84,11 +84,28 @@ const SocketProvider = (props: ChildrenType) => {
 
   useEffect(() => {
     if (socket) {
-      socket.emit("markMessageAsRead", {
-        userId: user.id,
-        receiverId: userToSend,
+      socket.on("removeChat", (payload: { receiverId: number }) => {
+        if (payload.receiverId === isReceiver) {
+          setUserToSend("none");
+          setIsReceiver(0);
+        }
       });
+      return () => {
+        socket.off("removeChat");
+      };
+    }
+  }, [socket]);
+
+  useEffect(() => {
+    if (socket) {
+      if (user.id && userToSend !== "none") {
+        socket.emit("markMessageAsRead", {
+          userId: user.id,
+          receiverId: userToSend,
+        });
+      }
       socket.on("markMessageAsRead", (messagesAsRead: any) => {
+        console.log("userToSend: ", userToSend);
         console.log("messagesAsRead: ", messagesAsRead);
       });
       socket.on("unReadMessagesCount", (count: number) => {
@@ -116,12 +133,15 @@ const SocketProvider = (props: ChildrenType) => {
     if (userToSend && user.id && deleteMessages === 1 && isReceiver) {
       //deleteMessagesByParticipantsRequest(isReceiver, user.id);
       if (socket) {
-        socket.emit("removeChat", isReceiver);
+        socket.emit("removeChat", {
+          receiverId: isReceiver,
+          userId: user.id,
+        });
+        setDeleteMessages(0);
+        setUserToSend("none");
+        setIsReceiver(0);
         return () => {
           socket.off("removeChat");
-          setDeleteMessages(0);
-          setUserToSend("none");
-          setIsReceiver(0);
         };
       }
     }
@@ -145,8 +165,8 @@ const SocketProvider = (props: ChildrenType) => {
         panel,
         setPanel,
         scrollRef,
-        usersAndRooms,
-        setUsersAndRooms,
+        users,
+        setUsers,
         deleteMessages,
         setDeleteMessages,
       }}
