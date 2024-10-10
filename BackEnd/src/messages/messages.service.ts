@@ -4,12 +4,14 @@ import { Message } from './entities/messages.entity';
 import { Repository } from 'typeorm';
 import { CreateMessageDto, finalReceiverDto } from './dto/messages.dto';
 import { UsersService } from 'src/users/users.service';
+//import { WebSocketsGateway } from '../socket/websockets.gateway';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectRepository(Message) private messageRepository: Repository<Message>,
     private usersService: UsersService,
+    //private socketGateway: WebSocketsGateway,
   ) {}
 
   async getAllMessages(req: Request) {
@@ -23,72 +25,7 @@ export class MessagesService {
         })
         .orderBy('message.message_ID', 'ASC')
         .getMany();
-      const authUserRoomsMessages = authUserMessages.filter(
-        (element) => element.type === 'room',
-      );
-      const promises = authUserRoomsMessages.map((message) => {
-        if (message.receiverId) {
-          return this.messageRepository.find({
-            relations: ['sender'],
-            where: { receiverId: message.receiverId },
-          });
-        } else {
-          return Promise.resolve(undefined);
-        }
-      });
-      const results = await Promise.all(promises);
-      const finalAuthUserRoomsMessages = results
-        .filter((result) => result !== undefined)
-        .flat();
-      const finalAuthUserMessages = authUserMessages.filter(
-        (message) =>
-          !authUserRoomsMessages.some(
-            (authUserRoomsMessage) =>
-              authUserRoomsMessage.receiverId === message.receiverId,
-          ),
-      );
-      return [...finalAuthUserMessages, ...finalAuthUserRoomsMessages];
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async getAllMessagesByUserId(id: number) {
-    try {
-      const authUserMessages = await this.messageRepository
-        .createQueryBuilder('message')
-        .leftJoinAndSelect('message.sender', 'sender')
-        .where('(message.sender = :id) OR (message.receiverId = :id)', {
-          id,
-        })
-        .orderBy('message.message_ID', 'ASC')
-        .getMany();
-      const authUserRoomsMessages = authUserMessages.filter(
-        (element) => element.type === 'room',
-      );
-      const promises = authUserRoomsMessages.map((message) => {
-        if (message.receiverId) {
-          return this.messageRepository.find({
-            relations: ['sender'],
-            where: { receiverId: message.receiverId },
-          });
-        } else {
-          return Promise.resolve(undefined);
-        }
-      });
-      const results = await Promise.all(promises);
-      const finalAuthUserRoomsMessages = results
-        .filter((result) => result !== undefined)
-        .flat();
-      const finalAuthUserMessages = authUserMessages.filter(
-        (message) =>
-          !authUserRoomsMessages.some(
-            (authUserRoomsMessage) =>
-              authUserRoomsMessage.receiverId === message.receiverId,
-          ),
-      );
-      return [...finalAuthUserMessages, ...finalAuthUserRoomsMessages];
+      return authUserMessages;
     } catch (error) {
       console.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -129,6 +66,9 @@ export class MessagesService {
 
   async postMessage(newMessage: CreateMessageDto) {
     try {
+      /*this.socket.server
+        .to(String(newMessage.receiverId))
+        .emit('message', newMessage.content);*/
       const newMessageCreated = this.messageRepository.create(newMessage);
       //console.log(newMessageCreated);
       return this.messageRepository.save(newMessageCreated);
@@ -138,12 +78,17 @@ export class MessagesService {
     }
   }
 
-  async markMessageAsRead(message_ID: number) {
+  async markMessageAsRead(receiverId: number, senderId: number) {
+    console.log('Получатель: ', senderId);
+    console.log('Отправитель: ', receiverId);
     await this.messageRepository
       .createQueryBuilder()
       .update(Message)
       .set({ isRead: true })
-      .where('message_ID = :message_ID AND isRead = false', { message_ID })
+      .where(
+        'receiverId = :senderId AND senderId = :receiverId AND isRead = false',
+        { receiverId, senderId },
+      )
       .execute();
   }
 
@@ -162,5 +107,19 @@ export class MessagesService {
         { receiverId, senderId },
       )
       .getCount();
+  }
+
+  async deleteMessagesByParticipants(receiverId: number, senderId: number) {
+    return this.messageRepository
+      .createQueryBuilder('message')
+      .delete()
+      .where(
+        '(receiverId = :receiverId AND senderId = :senderId) OR (receiverId = :senderId AND senderId = :receiverId)',
+        {
+          receiverId,
+          senderId,
+        },
+      )
+      .execute();
   }
 }

@@ -31,12 +31,29 @@ export const postMessagesRequest = async (newData: Message) => {
   return request.data;
 };
 
-export const markMessageAsRead = async (id: number) => {
+export const markMessageAsRead = async (id: number, senderId: number) => {
   const token = sessionStorage.getItem("token");
   //Create a message
-  const request = await axios.post(`/messages/read/${id}`, '', {
+  const request = await axios.post(
+    `/messages/read/`,
+    { id: id, senderId: senderId },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+  return request.data;
+};
+
+export const deleteMessagesByParticipantsRequest = async (
+  receiverId: number,
+  senderId: number,
+) => {
+  const token = sessionStorage.getItem("token");
+  const request = await axios.delete(`/messages/${receiverId}/${senderId}`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
   return request.data;

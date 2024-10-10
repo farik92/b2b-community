@@ -56,7 +56,6 @@ export class AuthService {
       const payload = { id: findUser.id };
       const UserToken = await this.jwtService.signAsync(payload);
       res.status(200).json({ user: findUser, token: UserToken });
-      console.log(UserToken);
     } catch (error) {
       console.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);

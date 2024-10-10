@@ -7,8 +7,8 @@ export interface LoginData {
 export interface RegisterData {
   id: number;
   name: string;
-  email: string;
-  password: string;
+  //email: string;
+  //password: string;
   image: string;
   createdAt: string;
 }
@@ -17,13 +17,11 @@ export interface ChildrenType {
   children: React.ReactNode;
 }
 
-export interface UsersAndRooms {
+export interface Users {
   id: number;
   name: string;
-  email: string;
-  password: string;
+  //email: string;
+  //password: string;
   image: string;
-  members: number[];
   createdAt: string;
-  creator: number;
 }

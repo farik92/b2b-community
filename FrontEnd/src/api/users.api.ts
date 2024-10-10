@@ -2,7 +2,7 @@ import axios from "./axios.ts";
 
 export const getAllUsersRequest = async () => {
   //Select all users
-  const request = await axios.get("/users/getAll", {
+  const request = await axios.get("https://site.b2b-se.com:7777/users/getAll", {
     headers: {
       Authorization: `Bearer ${sessionStorage.getItem("token")}`,
     },

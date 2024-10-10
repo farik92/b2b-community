@@ -11,9 +11,12 @@ import { Server, Socket } from 'socket.io';
 import { MessagesService } from 'src/messages/messages.service';
 import { ClientDto } from './dto/websockets.dto';
 import { UsersService } from 'src/users/users.service';
-import { RoomsService } from 'src/rooms/rooms.service';
-import { CompleteRoomDto, CreateRoomDto } from 'src/rooms/dto/rooms.dto';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
   cors: {
@@ -26,42 +29,46 @@ export class WebSocketsGateway
   constructor(
     private messageService: MessagesService,
     private usersService: UsersService,
-    private roomsService: RoomsService,
+    private jwtService: JwtService,
   ) {}
 
   @WebSocketServer() server: Server;
-  private clients: ClientDto[] = [];
+  public clients: ClientDto[] = [];
   private usersHandle: any[] = [];
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
-      const { userId, receiverId } = socket.handshake.auth;
+      const { userId, token } = socket.handshake.auth;
+      //if (!token) throw new UnauthorizedException('no token');
+      if (!token) return;
+      const { id: secureUserId } = await this.jwtService.verifyAsync(token, {
+        secret: process.env.TOKEN_SECURE,
+      });
 
-      if (userId) {
+      if (secureUserId === userId) {
         console.log(`${userId} with id: ${socket.id} is connected `);
-        this.clients.push({ user: userId, id: socket.id, socket });
+        /*this.clients.push({ user: userId, id: socket.id, socket });
+                this.usersHandle = (await this.server.fetchSockets()).map(
+                  (socket) => socket.handshake.auth.userId,
+                );
+                console.log('Users online: ', this.usersHandle);
+                // if (!this.usersHandle.includes(userId)) this.usersHandle.push(userId);
+                socket.emit('getOnlineUsers', this.usersHandle);*/
+
+        this.clients.push({
+          user: userId,
+          id: socket.id,
+          socket,
+        });
         if (!this.usersHandle.includes(userId)) this.usersHandle.push(userId);
         this.server.emit('getOnlineUsers', this.usersHandle);
-        console.log(this.usersHandle);
+
         const unReadMessagesCount =
           await this.messageService.unReadCount(userId);
-        this.server
-          .to(socket.id)
-          .emit('unReadMessagesCount', unReadMessagesCount);
-
-        const unReadMessagesCountByChat =
-          await this.messageService.unReadCountByChat(userId, receiverId);
-        this.server
-          .to(socket.id)
-          .emit('unReadMessagesCountByChat', unReadMessagesCountByChat);
-
-        const allMessages =
-          await this.messageService.getAllMessagesByUserId(userId);
-        this.server.to(socket.id).emit('allMessages', allMessages);
+        socket.emit('unReadMessagesCount', unReadMessagesCount);
       }
     } catch (error) {
-      console.error(error);
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw error;
     }
   }
 
@@ -70,6 +77,11 @@ export class WebSocketsGateway
       const { userId } = socket.handshake.auth;
       if (userId) {
         console.log(`${userId} with id: ${socket.id} Disconnected `);
+        /*this.clients = this.clients.filter((client) => client.id !== socket.id);
+                const user = await this.usersService.getUser(userId);
+                this.usersHandle = this.usersHandle.filter((name) => name !== user.id);
+                socket.emit('getOnlineUsers', this.usersHandle);*/
+
         this.clients = this.clients.filter((client) => client.id !== socket.id);
         const user = await this.usersService.getUser(userId);
         this.usersHandle = this.usersHandle.filter((name) => name !== user.id);
@@ -86,148 +98,96 @@ export class WebSocketsGateway
     @MessageBody() content: string,
     @ConnectedSocket() socket: Socket,
   ) {
+    console.log('NewMsgContent: ', content);
     try {
-      let room: CompleteRoomDto;
       const { userId, receiverId } = socket.handshake.auth;
       const finalData = { sender: userId, content, receiverId };
-
-      const receiverUser = await this.usersService.getUser(receiverId); // si es un grupo no va a existir
-      if (!receiverUser) {
-        const [findRoom] = await this.roomsService.getRoomByName(receiverId);
-        //nos aseguramos de que el receiver es el nombre de una room existente
-        room = findRoom;
-      }
-
+      await this.messageService.postMessage({
+        ...finalData,
+        type: 'user',
+      });
       for (const client of this.clients) {
-        if (receiverUser) {
-          // es un user
-          if (client.user === receiverUser.id) {
-            const senderUser = await this.usersService.getUser(userId);
-            this.server.to(client.id).emit('message', {
-              ...finalData,
-              sender: senderUser,
-              type: 'user',
-            });
+        if (client.user === receiverId) {
+          const senderUser = await this.usersService.getUser(userId);
+          this.server.to(client.id).emit('message', {
+            ...finalData,
+            sender: senderUser,
+            type: 'user',
+          });
 
-            const unReadMessagesCount = await this.messageService.unReadCount(
-              receiverUser.id,
-            );
-            this.server
-              .to(client.id)
-              .emit('unReadMessagesCount', unReadMessagesCount);
-
-            const unReadMessagesCountByChat =
-              await this.messageService.unReadCountByChat(
-                receiverUser.id,
-                userId,
-              );
-            this.server
-              .to(client.id)
-              .emit('unReadMessagesCountByChat', unReadMessagesCountByChat);
-          }
-        } else {
-          // es una room
-          for (const member of room.members) {
-            if (client.user === member) {
-              const senderUser = await this.usersService.getUser(userId);
-              this.server.to(client.id).emit('message', {
-                ...finalData,
-                sender: senderUser,
-                type: 'room',
-              });
-
-              const unReadMessagesCount =
-                await this.messageService.unReadCount(userId);
-              this.server
-                .to(client.id)
-                .emit('unReadMessagesCount', unReadMessagesCount);
-            }
-          }
+          const unReadMessagesCount =
+            await this.messageService.unReadCount(receiverId);
+          this.server
+            .to(client.id)
+            .emit('unReadMessagesCount', unReadMessagesCount);
         }
       }
-      receiverUser
-        ? await this.messageService.postMessage({
-            ...finalData,
-            type: 'user',
-          })
-        : await this.messageService.postMessage({
-            ...finalData,
-            type: 'room',
-          });
     } catch (error) {
       console.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  /*  @SubscribeMessage('unReadMessagesCount')
+  async handleUnReadMessagesCount(
+    @MessageBody() content: number,
+    @ConnectedSocket() socket: Socket,
+  ) {
+    const { userId, receiverId } = socket.handshake.auth;
+    for (const client of this.clients) {
+      if (client.user === userId) {
+        const unReadMessagesCount =
+          await this.messageService.unReadCount(userId);
+        this.server
+          .to(client.id)
+          .emit('unReadMessagesCount', unReadMessagesCount);
+      }
+      if (client.user === receiverId) {
+        const unReadMessagesCount =
+          await this.messageService.unReadCount(receiverId);
+        this.server
+          .to(client.id)
+          .emit('unReadMessagesCount', unReadMessagesCount);
+      }
+    }
+    console.log('unReadMessagesCount Получатель: ', userId);
+    console.log('unReadMessagesCount Отправитель: ', receiverId);
+  }*/
 
   @SubscribeMessage('markMessageAsRead')
   async handleMarkMessageAsRead(
     @MessageBody()
     payload: {
-      message_ID: number;
-      roomId?: number;
-      userId?: number;
+      userId: number;
+      receiverId: number;
     },
   ) {
-    await this.messageService.markMessageAsRead(payload.message_ID);
-    console.log(payload);
-    if (payload.roomId) {
-      this.server.to(`room_${payload.roomId}`).emit('markMessageAsRead', {
-        message_ID: payload.message_ID,
-      });
-    }
-
-    if (payload.userId) {
+    if (payload.userId && payload.receiverId !== 0) {
+      await this.messageService.markMessageAsRead(
+        payload.receiverId,
+        payload.userId,
+      );
       const client = this.clients.find(
         (client) => client.user === payload.userId,
       );
       if (client) {
         this.server.to(client.id).emit('markMessageAsRead', {
-          message_ID: payload.message_ID,
+          receiverId: payload.userId,
         });
+
+        const unReadMessagesCount = await this.messageService.unReadCount(
+          payload.userId,
+        );
+        this.server
+          .to(client.id)
+          .emit('unReadMessagesCount', unReadMessagesCount);
       }
     }
   }
 
-  @SubscribeMessage('createRoom')
-  async createRoom(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() data: CreateRoomDto,
-  ) {
-    try {
-      const { name, creator } = data;
-      socket.join(name);
-      console.log(`Client ${socket.id} create room ${name}`);
-      this.roomsService.postRoom({ name, creator, members: [creator] });
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @SubscribeMessage('addClientToRoom')
-  async handleAddClientToRoom(@MessageBody() data: CreateRoomDto) {
-    try {
-      const { name, creator, members } = data;
-      members.forEach((member: number) => {
-        this.clients.forEach(async (client: ClientDto) => {
-          if (member === client.user) {
-            client.socket.join(name);
-            data.image;
-            this.server.to(client.id).emit('addClientToRoom', {
-              ...data,
-              members: [...data.members, creator],
-              image: data.url,
-            });
-            console.log(`Client ${member} joined room ${name}`);
-          }
-        });
-      });
-      this.roomsService.postRoom({ name, creator, members });
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  @SubscribeMessage('removeChat')
+  async handleRemoveChat(@MessageBody() receiverId: number) {
+    console.log(receiverId);
   }
 
   async test() {
