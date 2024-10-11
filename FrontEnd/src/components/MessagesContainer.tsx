@@ -112,31 +112,47 @@ function MessagesContainer() {
           message.sender === user.id ? (
             <div
               key={index}
-              className={`right message__${message.isRead ? "read" : "unread"}`}
+              className={`message-right message__${message.isRead ? "read" : "unread"}`}
             >
-              <span className="sender">
+              <p className="message-content">{message.content}</p>
+              <span className="message-sender" hidden={true}>
                 Вы
-                <span className="hour">
-                  {getDateAndHours(message.createdAt)}
-                </span>
               </span>
-              <p className="content">{message.content}</p>
-              <span className="message-status"></span>
+              <span className="message-hour">
+                {getDateAndHours(message.createdAt)}
+              </span>
+              {message.isRead ? (
+                <span className="message-read">
+                  <svg
+                    width="24"
+                    height="14"
+                    viewBox="0 0 24 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M0.410156 8.41008L6.00016 14.0001L7.41016 12.5801L1.83016 7.00008L0.410156 8.41008ZM22.2402 0.580078L11.6602 11.1701L7.50016 7.00008L6.07016 8.41008L11.6602 14.0001L23.6602 2.00008L22.2402 0.580078ZM18.0002 2.00008L16.5902 0.580078L10.2402 6.93008L11.6602 8.34008L18.0002 2.00008Z"
+                      fill="#00B066"
+                    />
+                  </svg>
+                </span>
+              ) : (
+                ""
+              )}
             </div>
           ) : message.sender === userToSend ||
             message.receiverId === userToSend ? (
             <div
               key={index}
-              className={`left message__${message.isRead ? "read" : "unread"}`}
+              className={`message-left message__${message.isRead ? "read" : "unread"}`}
             >
-              <span className="sender">
+              <p className="message-content">{message.content}</p>
+              <span className="message-sender" hidden={true}>
                 {userToSendName}
-                <span className="hour">
-                  {getDateAndHours(message.createdAt)}
-                </span>
               </span>
-              <p className="content">{message.content}</p>
-              <span className="message-status"></span>
+              <span className="message-hour">
+                {getDateAndHours(message.createdAt)}
+              </span>
             </div>
           ) : (
             ""
@@ -144,15 +160,16 @@ function MessagesContainer() {
         )}
       </div>
       <form className="chat-form" onSubmit={textHandleSubmit}>
-        <input
+        <textarea
           className="input-chat"
           id="input"
           value={text}
-          type="text"
           onChange={(e) => setText(e.target.value)}
           autoFocus
           spellCheck
           autoComplete="off"
+          placeholder="Написать сообщение"
+          rows={3}
         />
         <button className="button-chat">Отправить</button>
       </form>
