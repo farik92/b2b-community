@@ -1,11 +1,17 @@
 import axios from "./axios.ts";
 
 export const verifyTokenUserRequest = async () => {
-  //Check if the UserToken exists/matches to enter the user account
-  const request = await axios.get("/auth/verify", {
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-    },
-  });
-  return request.data;
-}; //[USED]
+  const token = sessionStorage.getItem("token");
+  if (!token) return;
+  try {
+    const request = await axios.get("/auth/verify", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return request.data;
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    throw error;
+  }
+};

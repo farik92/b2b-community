@@ -4,8 +4,8 @@ import { useSocketContext } from "../contexts/SocketContext.tsx";
 import { useUserContext } from "../contexts/UserContext.tsx";
 import { SenderStringMessage } from "../interfaces/message.interfaces.ts";
 
-function MessagesContainer() {
-  const { user, isReceiver, setIsReceiver } = useUserContext();
+const MessagesContainer = () => {
+  const { user } = useUserContext();
   const {
     socket,
     userToSend,
@@ -13,10 +13,9 @@ function MessagesContainer() {
     userToSendName,
     messages,
     setMessages,
-    dateISO,
-    allMessages,
     setAllMessages,
     scrollRef,
+    dateISO,
     setDeleteMessages,
   } = useSocketContext();
   const [text, setText] = useState("");
@@ -32,8 +31,11 @@ function MessagesContainer() {
         isRead: false,
       };
       if (socket) socket.emit("message", completeData);
-      if (!isReceiver.members) setMessages([...messages, completeData]);
-      setAllMessages([...allMessages, { ...completeData, sender: user }]);
+      setMessages((prev: any) => [...prev, completeData]);
+      setAllMessages((prev: any) => [
+        ...prev,
+        { ...completeData, sender: user },
+      ]);
       setText("");
     }
   };
@@ -89,7 +91,6 @@ function MessagesContainer() {
             className="chat-user-close"
             onClick={() => {
               setUserToSend("none");
-              setIsReceiver(0);
             }}
           >
             <svg
@@ -108,73 +109,45 @@ function MessagesContainer() {
         </div>
       </nav>
       <div className="screen" ref={scrollRef}>
-        {messages.map((message: SenderStringMessage, index: number) =>
-          message.sender === user.id ? (
-            <div
-              key={index}
-              className={`message-right message__${message.isRead ? "read" : "unread"}`}
-            >
-              <p className="message-content">{message.content}</p>
-              <span className="message-sender" hidden={true}>
-                Вы
+        {messages.map((message: SenderStringMessage, index: number) => (
+          <div
+            key={index}
+            className={`message-${message.sender === user.id ? "right" : "left"} message__${message.isRead ? "read" : "unread"}`}
+          >
+            <p className="message-content">{message.content}</p>
+            <span className="message-hour">
+              {getDateAndHours(message.createdAt)}
+            </span>
+            {message.sender === user.id && message.isRead && (
+              <span className="message-read">
+                <svg
+                  width="24"
+                  height="14"
+                  viewBox="0 0 24 14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M0.410156 8.41008L6.00016 14.0001L7.41016 12.5801L1.83016 7.00008L0.410156 8.41008ZM22.2402 0.580078L11.6602 11.1701L7.50016 7.00008L6.07016 8.41008L11.6602 14.0001L23.6602 2.00008L22.2402 0.580078ZM18.0002 2.00008L16.5902 0.580078L10.2402 6.93008L11.6602 8.34008L18.0002 2.00008Z"
+                    fill="#00B066"
+                  />
+                </svg>
               </span>
-              <span className="message-hour">
-                {getDateAndHours(message.createdAt)}
-              </span>
-              {message.isRead ? (
-                <span className="message-read">
-                  <svg
-                    width="24"
-                    height="14"
-                    viewBox="0 0 24 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0.410156 8.41008L6.00016 14.0001L7.41016 12.5801L1.83016 7.00008L0.410156 8.41008ZM22.2402 0.580078L11.6602 11.1701L7.50016 7.00008L6.07016 8.41008L11.6602 14.0001L23.6602 2.00008L22.2402 0.580078ZM18.0002 2.00008L16.5902 0.580078L10.2402 6.93008L11.6602 8.34008L18.0002 2.00008Z"
-                      fill="#00B066"
-                    />
-                  </svg>
-                </span>
-              ) : (
-                ""
-              )}
-            </div>
-          ) : message.sender === userToSend ||
-            message.receiverId === userToSend ? (
-            <div
-              key={index}
-              className={`message-left message__${message.isRead ? "read" : "unread"}`}
-            >
-              <p className="message-content">{message.content}</p>
-              <span className="message-sender" hidden={true}>
-                {userToSendName}
-              </span>
-              <span className="message-hour">
-                {getDateAndHours(message.createdAt)}
-              </span>
-            </div>
-          ) : (
-            ""
-          ),
-        )}
+            )}
+          </div>
+        ))}
       </div>
       <form className="chat-form" onSubmit={textHandleSubmit}>
         <textarea
           className="input-chat"
-          id="input"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          autoFocus
-          spellCheck
-          autoComplete="off"
           placeholder="Написать сообщение"
-          rows={3}
         />
         <button className="button-chat">Отправить</button>
       </form>
     </div>
   );
-}
+};
 
 export default MessagesContainer;

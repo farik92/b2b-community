@@ -4,14 +4,12 @@ import { Message } from './entities/messages.entity';
 import { Repository } from 'typeorm';
 import { CreateMessageDto, finalReceiverDto } from './dto/messages.dto';
 import { UsersService } from 'src/users/users.service';
-//import { WebSocketsGateway } from '../socket/websockets.gateway';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectRepository(Message) private messageRepository: Repository<Message>,
     private usersService: UsersService,
-    //private socketGateway: WebSocketsGateway,
   ) {}
 
   async getAllMessages(req: Request) {
@@ -66,11 +64,10 @@ export class MessagesService {
 
   async postMessage(newMessage: CreateMessageDto) {
     try {
-      /*this.socket.server
-        .to(String(newMessage.receiverId))
-        .emit('message', newMessage.content);*/
+      if (newMessage.sender === newMessage.receiverId) {
+        return;
+      }
       const newMessageCreated = this.messageRepository.create(newMessage);
-      //console.log(newMessageCreated);
       return this.messageRepository.save(newMessageCreated);
     } catch (error) {
       console.error(error);
@@ -79,8 +76,6 @@ export class MessagesService {
   }
 
   async markMessageAsRead(receiverId: number, senderId: number) {
-    console.log('Получатель: ', senderId);
-    console.log('Отправитель: ', receiverId);
     await this.messageRepository
       .createQueryBuilder()
       .update(Message)

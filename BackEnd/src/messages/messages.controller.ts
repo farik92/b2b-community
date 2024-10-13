@@ -37,8 +37,6 @@ export class MessagesController {
   }
   @Post('/post')
   async createMessageEndpoint(@Body() newMessage: CreateMessageDto) {
-    //return this.messagesService.postMessage(newMessage);
-    //this.socketServer.clients.map((c) => c.socket.handshake.auth.userId);
     this.socketServer.clients
       .filter((s) => s.user === newMessage.receiverId)
       .forEach((s) =>
@@ -50,14 +48,14 @@ export class MessagesController {
       );
     return this.messagesService.postMessage(newMessage);
   }
-  @Post('read')
+  @Post('/read')
   markMessageAsRead(
     @Body('id') id: number,
     @Body('senderId') senderId: number,
   ) {
     return this.messagesService.markMessageAsRead(id, senderId);
   }
-  @Delete(':receiverId/:senderId')
+  @Delete('/:receiverId/:senderId')
   async deleteMessagesByParticipants(
     @Param('receiverId', ParseIntPipe) receiverId: number,
     @Param('senderId', ParseIntPipe) senderId: number,
@@ -66,9 +64,5 @@ export class MessagesController {
       receiverId,
       senderId,
     );
-  }
-  @Get('test')
-  test() {
-    return this.socketServer.test();
   }
 }
