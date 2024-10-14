@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  deleteMessagesByParticipantsRequest,
   getMessagesReceiverRequest,
   //markMessageAsRead,
 } from "../api/messages.api";
@@ -22,10 +21,9 @@ export const useGetAllMessages = (receiver: number) => {
           for (let i = 0; i < data.length; i++) {
             data[i].sender = data[i].sender.id;
             if (
-              data[i].sender.id === finalReceiver.id &&
+              data[i].sender === finalReceiver.id &&
               data[i].isRead === false
             ) {
-              console.log("fsdfsdfdsfsdfsd");
               data[i].isRead = true;
             }
           }
@@ -35,19 +33,4 @@ export const useGetAllMessages = (receiver: number) => {
     }
   }, [receiver]);
   return { messages, setMessages };
-};
-
-export const useDeleteMessagesByParticipants = (
-  receiverId: number,
-  senderId: number,
-) => {
-  const [receiver, setReceiver] = useState(0);
-  const [sender, setSender] = useState(0);
-
-  useEffect(() => {
-    if (receiverId && senderId) {
-      deleteMessagesByParticipantsRequest(receiverId, senderId);
-    }
-  }, [receiverId, senderId]);
-  return { receiver, setReceiver, sender, setSender };
 };

@@ -40,11 +40,12 @@ const SocketProvider = (props: ChildrenType) => {
 
   useEffect(() => {
     const getMessagesReceiver = async () => {
+      console.log("userToSend", userToSend);
       const data = await getAllMessagesRequest();
       setAllMessages(data);
     };
     getMessagesReceiver();
-  }, [messages]);
+  }, [userToSend]);
 
   useMemo(() => {
     const socket = io(import.meta.env.VITE_SERVER_HOST, {
@@ -92,7 +93,6 @@ const SocketProvider = (props: ChildrenType) => {
 
   useEffect(() => {
     if (socket) {
-      console.log("removeChat");
       socket.on("removeChat", (payload: { receiverId: number }) => {
         if (payload.receiverId === isReceiver) {
           setUserToSend("none");
@@ -108,6 +108,7 @@ const SocketProvider = (props: ChildrenType) => {
   useEffect(() => {
     if (socket) {
       if (user.id && userToSend !== "none") {
+        console.log("markMessageAsRead: ", userToSend);
         socket.emit("markMessageAsRead", {
           userId: user.id,
           receiverId: userToSend,
