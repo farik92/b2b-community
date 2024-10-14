@@ -2,6 +2,10 @@
     font-family: "Inter-Medium", sans-serif;
 }
 
+#root * {
+    box-sizing: border-box;
+}
+
 .messenger-wraper {
     max-width: 100%;
     width: 100%;
@@ -9,7 +13,6 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-width: 415px;
     gap: 0;
 }
 
@@ -286,7 +289,6 @@ span.remove-chat {
 
 .container {
     width: 100%;
-    min-width: 380px;
     margin: 0;
     background-color: #51535e44;
     padding: 0;
