@@ -3,9 +3,11 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Request,
   UseGuards,
   Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto, finalReceiverDto } from './dto/messages.dto';
@@ -34,17 +36,33 @@ export class MessagesController {
     return this.messagesService.getMessagesByReceiver(req, finalReceiver);
   }
   @Post('/post')
-  createMessageEndpoint(@Body() newMessage: CreateMessageDto) {
-    //return this.messagesService.postMessage(newMessage);
+  async createMessageEndpoint(@Body() newMessage: CreateMessageDto) {
+    this.socketServer.clients
+      .filter((s) => s.user === newMessage.receiverId)
+      .forEach((s) =>
+        s.socket.emit('message', {
+          ...newMessage,
+          type: 'user',
+          sender: { id: newMessage.sender },
+        }),
+      );
     return this.messagesService.postMessage(newMessage);
   }
-  @Post('read/:id')
-  markMessageAsRead(@Param('id') id: number) {
-    return this.messagesService.markMessageAsRead(id);
+  @Post('/read')
+  markMessageAsRead(
+    @Body('id') id: number,
+    @Body('senderId') senderId: number,
+  ) {
+    return this.messagesService.markMessageAsRead(id, senderId);
   }
-
-  @Get('test')
-  test() {
-    return this.socketServer.test();
+  @Delete('/:receiverId/:senderId')
+  async deleteMessagesByParticipants(
+    @Param('receiverId', ParseIntPipe) receiverId: number,
+    @Param('senderId', ParseIntPipe) senderId: number,
+  ) {
+    return await this.messagesService.deleteMessagesByParticipants(
+      receiverId,
+      senderId,
+    );
   }
 }

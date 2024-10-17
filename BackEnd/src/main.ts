@@ -7,7 +7,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: ['http://4b2b.loc', 'http://localhost:5173'],
+    origin: [
+      'http://localhost:5173',
+      'https://market.b2b-se.com',
+      'https://b2b-se.com',
+      'https://site.b2b-se.com',
+      'https://b2b-se.com',
+    ],
     credentials: true,
   });
 
@@ -21,8 +27,8 @@ async function bootstrap() {
 
   //Swagger
   const options = new DocumentBuilder()
-    .setTitle('Real Time Chat')
-    .setDescription('API that manages the endpoints of the Real Time Chat')
+    .setTitle('B2B Community')
+    .setDescription('API that manages the endpoints of the B2B Community')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
