@@ -1,9 +1,19 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useState } from "react";
 import { getDateAndHours } from "../functions/getDateAndHours.ts";
 import { useSocketContext } from "../contexts/SocketContext.tsx";
 import { useUserContext } from "../contexts/UserContext.tsx";
 import { SenderStringMessage } from "../interfaces/message.interfaces.ts";
+import DOMPurify from "dompurify";
 import * as React from "react";
+
+const linkify = (text: string) => {
+  const urlPattern = /https?:\/\/[^\s]+/g; // Регулярное выражение для поиска ссылок
+  return text.replace(
+    urlPattern,
+    (url) =>
+      `<a href="${url}" target="_blank" rel="noopener noreferrer">по ссылке</a>`,
+  );
+};
 
 const MessagesContainer = () => {
   const { user } = useUserContext();
@@ -20,46 +30,89 @@ const MessagesContainer = () => {
     setDeleteMessages,
   } = useSocketContext();
   const [text, setText] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleDropdown = () => setIsOpen(!isOpen);
+
+  const sendMessage = useCallback(() => {
+    if (!text.trim()) return;
+
+    const completeData = {
+      sender: user.id,
+      content: text,
+      createdAt: dateISO,
+      receiverId: userToSend,
+      isRead: false,
+    };
+
+    if (socket) socket.emit("message", completeData);
+    setMessages((prev: SenderStringMessage[]) => [...prev, completeData]);
+    setAllMessages((prev: SenderStringMessage[]) => [
+      ...prev,
+      { ...completeData, sender: user },
+    ]);
+    setText("");
+  }, [text, socket, user.id, dateISO, userToSend, setMessages, setAllMessages]);
 
   const textHandleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (text.trim()) {
-      const completeData = {
-        sender: user.id,
-        content: text,
-        createdAt: dateISO,
-        receiverId: userToSend,
-        isRead: false,
-      };
-      if (socket) socket.emit("message", completeData);
-      setMessages((prev: never) => [...prev, completeData]);
-      setAllMessages((prev: never) => [
-        ...prev,
-        { ...completeData, sender: user },
-      ]);
-      setText("");
-    }
+    sendMessage();
   };
   const onEnterPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      if (text.trim()) {
-        const completeData = {
-          sender: user.id,
-          content: text,
-          createdAt: dateISO,
-          receiverId: userToSend,
-          isRead: false,
-        };
-        if (socket) socket.emit("message", completeData);
-        setMessages((prev: never) => [...prev, completeData]);
-        setAllMessages((prev: never) => [
-          ...prev,
-          { ...completeData, sender: user },
-        ]);
-        setText("");
-      }
+      sendMessage();
     }
+  };
+
+  const sanitizeHtml = (html: string) => {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ["a", "span"],
+      ALLOWED_ATTR: ["target", "href", "rel", "title"],
+    });
+  };
+
+  const renderMessage = (message: SenderStringMessage, index: number) => {
+    const isSender = message.sender === user.id;
+    const isReceiver =
+      message.sender === userToSend || message.receiverId === userToSend;
+
+    if (!isSender && !isReceiver) return null;
+
+    return (
+      <div
+        key={index}
+        className={`message-${isSender ? "right" : "left"} message__${
+          message.isRead ? "read" : "unread"
+        }`}
+      >
+        <p
+          className="message-content"
+          dangerouslySetInnerHTML={{
+            __html: sanitizeHtml(linkify(message.content)),
+          }}
+        />
+        <span className="message-hour">
+          {getDateAndHours(message.createdAt)}
+        </span>
+        {isSender && message.isRead && (
+          <span className="message-read">
+            <svg
+              width="24"
+              height="14"
+              viewBox="0 0 24 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0.410156 8.41008L6.00016 14.0001L7.41016 12.5801L1.83016 7.00008L0.410156 8.41008ZM22.2402 0.580078L11.6602 11.1701L7.50016 7.00008L6.07016 8.41008L11.6602 14.0001L23.6602 2.00008L22.2402 0.580078ZM18.0002 2.00008L16.5902 0.580078L10.2402 6.93008L11.6602 8.34008L18.0002 2.00008Z"
+                fill="#00B066"
+              />
+            </svg>
+          </span>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -90,6 +143,37 @@ const MessagesContainer = () => {
           {userToSendName}
         </div>
         <div className="navbar-chat-user-actions">
+          <div className="navbar-chat-user-actions-dropdown">
+            <span
+              className={
+                isOpen ? "dropdown-toggle dropdown--active" : "dropdown-toggle"
+              }
+              onClick={toggleDropdown}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 16C12.5304 16 13.0391 16.2107 13.4142 16.5858C13.7893 16.9609 14 17.4696 14 18C14 18.5304 13.7893 19.0391 13.4142 19.4142C13.0391 19.7893 12.5304 20 12 20C11.4696 20 10.9609 19.7893 10.5858 19.4142C10.2107 19.0391 10 18.5304 10 18C10 17.4696 10.2107 16.9609 10.5858 16.5858C10.9609 16.2107 11.4696 16 12 16ZM12 10C12.5304 10 13.0391 10.2107 13.4142 10.5858C13.7893 10.9609 14 11.4696 14 12C14 12.5304 13.7893 13.0391 13.4142 13.4142C13.0391 13.7893 12.5304 14 12 14C11.4696 14 10.9609 13.7893 10.5858 13.4142C10.2107 13.0391 10 12.5304 10 12C10 11.4696 10.2107 10.9609 10.5858 10.5858C10.9609 10.2107 11.4696 10 12 10ZM12 4C12.5304 4 13.0391 4.21071 13.4142 4.58579C13.7893 4.96086 14 5.46957 14 6C14 6.53043 13.7893 7.03914 13.4142 7.41421C13.0391 7.78929 12.5304 8 12 8C11.4696 8 10.9609 7.78929 10.5858 7.41421C10.2107 7.03914 10 6.53043 10 6C10 5.46957 10.2107 4.96086 10.5858 4.58579C10.9609 4.21071 11.4696 4 12 4Z"
+                  fill="#1E2B3E"
+                />
+              </svg>
+            </span>
+            {isOpen && (
+              <div className="dropdown-menu">
+                <a href="#" className="dropdown-item">
+                  Settings
+                </a>
+                <a href="#" className="dropdown-item">
+                  Logout
+                </a>
+              </div>
+            )}
+          </div>
           <div
             className="chat-user-remove"
             onClick={() => {
@@ -131,50 +215,7 @@ const MessagesContainer = () => {
         </div>
       </nav>
       <div className="screen" ref={scrollRef}>
-        {messages.map((message: SenderStringMessage, index: number) =>
-          message.sender === user.id ? (
-            <div
-              key={index}
-              className={`message-right message__${message.isRead ? "read" : "unread"}`}
-            >
-              <p className="message-content">{message.content}</p>
-              <span className="message-hour">
-                {getDateAndHours(message.createdAt)}
-              </span>
-              {message.isRead ? (
-                <span className="message-read">
-                  <svg
-                    width="24"
-                    height="14"
-                    viewBox="0 0 24 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0.410156 8.41008L6.00016 14.0001L7.41016 12.5801L1.83016 7.00008L0.410156 8.41008ZM22.2402 0.580078L11.6602 11.1701L7.50016 7.00008L6.07016 8.41008L11.6602 14.0001L23.6602 2.00008L22.2402 0.580078ZM18.0002 2.00008L16.5902 0.580078L10.2402 6.93008L11.6602 8.34008L18.0002 2.00008Z"
-                      fill="#00B066"
-                    />
-                  </svg>
-                </span>
-              ) : (
-                ""
-              )}
-            </div>
-          ) : message.sender === userToSend ||
-            message.receiverId === userToSend ? (
-            <div
-              key={index}
-              className={`message-left message__${message.isRead ? "read" : "unread"}`}
-            >
-              <p className="message-content">{message.content}</p>
-              <span className="message-hour">
-                {getDateAndHours(message.createdAt)}
-              </span>
-            </div>
-          ) : (
-            ""
-          ),
-        )}
+        {messages.map(renderMessage)}
       </div>
       <form className="chat-form" onSubmit={textHandleSubmit}>
         <textarea
@@ -187,7 +228,9 @@ const MessagesContainer = () => {
           }
           placeholder="Написать сообщение"
         />
-        <button className="btn btn-primary">Отправить</button>
+        <button className="btn btn-primary" disabled={!text.trim()}>
+          Отправить
+        </button>
       </form>
     </div>
   );

@@ -13,7 +13,6 @@ import { useUserContext } from "./UserContext";
 import { Message } from "../interfaces/message.interfaces";
 import { useGetAllMessages } from "../hooks/messages.hooks";
 import debounce from "lodash.debounce";
-import { useAppContext } from "./AppContext.tsx";
 
 const socketContext = createContext<any>(undefined);
 
@@ -22,7 +21,6 @@ export function useSocketContext() {
 }
 
 const SocketProvider = (props: ChildrenType) => {
-  const appData = useAppContext();
   const { user, isAuthenticated } = useUserContext();
   const [unReadMessagesCount, setUnReadMessagesCount] = useState<{
     count?: number;
@@ -35,17 +33,19 @@ const SocketProvider = (props: ChildrenType) => {
   const [panel, setPanel] = useState<string>("chats");
   const scrollRef = useRef<HTMLDivElement>(null);
   const dateISO = new Date().toISOString();
+  const [text, setText] = useState("");
 
   useMemo(() => {
-    const socket = io(import.meta.env.VITE_SERVER_HOST, {
-      autoConnect: true,
-      auth: {
-        userId: user.id,
-        token: sessionStorage.getItem("token"),
-      },
-    });
-    setSocket(socket);
-    setUserToSend(appData.data.vendorId);
+    if (isAuthenticated === true) {
+      const socket = io(import.meta.env.VITE_SERVER_HOST, {
+        autoConnect: true,
+        auth: {
+          userId: user.id,
+          token: sessionStorage.getItem("token"),
+        },
+      });
+      setSocket(socket);
+    }
   }, [isAuthenticated]);
 
   const verify = useCallback(
@@ -129,6 +129,8 @@ const SocketProvider = (props: ChildrenType) => {
         panel,
         setPanel,
         scrollRef,
+        text,
+        setText,
       }}
     >
       {props.children}

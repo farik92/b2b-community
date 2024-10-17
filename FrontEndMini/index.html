@@ -7,13 +7,75 @@
 </head>
 <body>
 <script>
-    window.vendorId = 996;
-    window.requestPriceBtn = 'requestPriceBtn';
+    if (sessionStorage.getItem('token')) {
+        window.vendorId = 0;
+    }
 </script>
 <a href="javascript:" class="btn btn-success button_buy" id="requestPriceBtn">Уточнить цену</a>
-<a href="javascript:" class="btn btn-success button_buy" id="showChatBtn">Показать чат</a>
-<div id="root"></div>
+<a href="javascript:" class="btn btn-success button_buy" id="showMessenger">Показать чат</a>
+<div id="root" hidden></div>
+<input type="hidden" name="custom_product_name" id="custom_product_name" value="Чистка ковров">
+<input type="hidden" name="custom_product_type" id="custom_product_type" value="2">
 <script type="module" src="/src/main.tsx"></script>
+<script>
+    const showMessenger = document.getElementById('showMessenger');
 
+    const requestPriceBtn = document.getElementById('requestPriceBtn');
+    const root = document.getElementById('root');
+    const productName = document.getElementById('custom_product_name');
+    const productType = document.getElementById('custom_product_type');
+
+    if (requestPriceBtn) {
+        requestPriceBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            root.toggleAttribute('hidden');
+            root.scrollIntoView();
+
+            let eventDetailArgs = {
+                content: `Здравствуйте! Интересует цена на ${parseInt(productType.value) === 2 ? 'услугу' : 'товар'} "${productName.value}" ${window.location}`,
+                vendorId: 996
+            }
+
+            if (root.hasAttribute('hidden')) {
+                showMessenger.textContent = 'Показать чат';
+                eventDetailArgs.vendorId = 0;
+                eventDetailArgs.content = null;
+            } else {
+                showMessenger.textContent = 'Скрыть чат';
+            }
+
+            const event = new CustomEvent('myButtonClicked', {
+                detail: eventDetailArgs,
+                bubbles: true
+            });
+            requestPriceBtn.dispatchEvent(event);
+        })
+    }
+
+    if (showMessenger) {
+        showMessenger.addEventListener('click', function (e) {
+            e.preventDefault();
+            root.toggleAttribute('hidden');
+
+            let eventDetailArgs = {
+                vendorId: 996
+            }
+
+            if (root.hasAttribute('hidden')) {
+                e.target.textContent = 'Показать чат';
+                eventDetailArgs.vendorId = 0;
+                eventDetailArgs.content = null;
+            } else {
+                e.target.textContent = 'Скрыть чат';
+            }
+
+            const event = new CustomEvent('myButtonClicked', {
+                detail: eventDetailArgs,
+                bubbles: true
+            });
+            requestPriceBtn.dispatchEvent(event);
+        })
+    }
+</script>
 </body>
 </html>

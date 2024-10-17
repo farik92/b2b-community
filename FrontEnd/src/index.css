@@ -40,12 +40,32 @@
     justify-content: space-between;
 }
 
-.messenger-wraper .navbar-chat div {
+.messenger-wraper .navbar-chat .navbar-chat-user-info, .messenger-wraper .navbar-chat .navbar-chat-user-actions {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     cursor: pointer;
+}
+
+.navbar-chat-user-actions-dropdown {
+    position: relative;
+}
+
+.messenger-wraper .navbar-chat .dropdown-menu {
+    background: #fff;
+    padding: 5px;
+    position: absolute;
+    display: block;
+    transform: translateY(100%);
+    bottom: 0;
+    right: 0;
+    z-index: 9;
+}
+
+.messenger-wraper .navbar-chat .dropdown-menu a {
+    display: block;
+    width: 100%;
 }
 
 .messenger-wraper .container {
