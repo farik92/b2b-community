@@ -1,103 +1,111 @@
-import {useGetAllUsersAndRooms} from "../hooks/users.hooks";
-import {useSocketContext} from "../contexts/SocketContext";
-import {useUserContext} from "../contexts/UserContext";
-import {getDateAndHours} from "../functions/getDateAndHours";
-import {Message} from "../interfaces/message.interfaces";
-import {UsersAndRooms} from "../interfaces/user.interfaces";
+import { useGetAllUsers } from "../hooks/users.hooks";
+import { useSocketContext } from "../contexts/SocketContext";
+import { useUserContext } from "../contexts/UserContext";
+import { Message } from "../interfaces/message.interfaces";
+import { Users } from "../interfaces/user.interfaces";
+import UserSearch from "../components/UserSearch";
+import { useMemo } from "react";
 
 function ChatsPanel() {
-    const {user, setIsMembers} = useUserContext();
-    const {conectedUsers, userToSend, setUserToSend, setUserToSendName, allMessages, unReadMessagesCountByChat} = useSocketContext();
-    const {usersAndRooms} = useGetAllUsersAndRooms(user.id);
+  const { user } = useUserContext();
+  const {
+    conectedUsers,
+    userToSend,
+    setUserToSend,
+    setUserToSendName,
+    allMessages,
+  } = useSocketContext();
+  const { users } = useGetAllUsers(user.id);
 
-    const getLastMessage = (sender: number, receiverId: number) => {
-        if (!allMessages) return [undefined, undefined, undefined];
+  const userMessagesData = useMemo(() => {
+    return users
+      .map((sortedUser: Users) => {
         const lastMessage = allMessages
-            .slice()
-            .reverse()
-            .find((message: Message) =>
-                message.type === "room"
-                    ? // room
-                    message.receiverId === receiverId
-                    : // user
-                    (message.sender.id === sender && message.receiverId === receiverId) ||
-                    (message.sender.id === receiverId && message.receiverId === sender)
-            );
-        if (!lastMessage)
-            return [{sender: {id: undefined}, content: undefined, createdAt: undefined}];
-        const {content, sender: resultSender, createdAt: resultCreatedAt} = lastMessage;
-        return [content, resultSender, resultCreatedAt];
-    };
-    const sortedUsersAndRooms = usersAndRooms.slice().sort((a: { id: number; }, b: { id: number; }) => {
-        const [, , aLastMessageCreatedAt] = getLastMessage(user.id, a.id);
-        const [, , bLastMessageCreatedAt] = getLastMessage(user.id, b.id);
+          .slice()
+          .reverse()
+          .find(
+            (message: Message) =>
+              (message.sender.id === user.id &&
+                message.receiverId === sortedUser.id) ||
+              (message.sender.id === sortedUser.id &&
+                message.receiverId === user.id),
+          );
 
-        if (aLastMessageCreatedAt && !bLastMessageCreatedAt) return -1;
-        if (!aLastMessageCreatedAt && bLastMessageCreatedAt) return 1;
+        if (!lastMessage) return null;
 
-        if (aLastMessageCreatedAt && bLastMessageCreatedAt) {
-            return new Date(bLastMessageCreatedAt).getTime() - new Date(aLastMessageCreatedAt).getTime();
-        }
+        const messageCount = allMessages.filter(
+          (message: Message) =>
+            message.sender.id === sortedUser.id &&
+            message.receiverId === user.id &&
+            !message.isRead,
+        ).length;
 
-        const aIsOnline = conectedUsers.includes(a.id);
-        const bIsOnline = conectedUsers.includes(b.id);
-        if (aIsOnline && !bIsOnline) return -1;
-        if (!aIsOnline && bIsOnline) return 1;
+        return {
+          user: sortedUser,
+          lastMessage,
+          messageCount,
+          lastMessageDate: lastMessage
+            ? new Date(lastMessage.createdAt).getTime()
+            : 0,
+          isOnline: conectedUsers.includes(sortedUser.id),
+        };
+      })
+      .filter((userData) => userData !== null);
+  }, [allMessages, users, conectedUsers, user.id]);
 
-        return 0;
+  const sortedUsers = useMemo(() => {
+    return userMessagesData.sort((a, b) => {
+      // Сортировка по последнему сообщению и онлайн статусу
+      if (a.lastMessageDate && !b.lastMessageDate) return -1;
+      if (!a.lastMessageDate && b.lastMessageDate) return 1;
+      if (a.lastMessageDate && b.lastMessageDate) {
+        return b.lastMessageDate - a.lastMessageDate;
+      }
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+      return 0;
     });
+  }, [userMessagesData]);
 
-    return (
-        <div className="chats">
-            {sortedUsersAndRooms.map((userOrRoom: UsersAndRooms, index: number) => {
-                const [lastMessageContent, lastMessageSender, lastMessageCreatedAt] = getLastMessage(
-                    user.id,
-                    userOrRoom.id
-                );
-                return (
-                    <div key={index} className={`sender-chat ${userToSend === userOrRoom.id ? "selected" : ""}`}
-                         onClick={() => {
-                             setIsMembers({id: userOrRoom.id, members: userOrRoom.members});
-                             setUserToSend(userOrRoom.id);
-                             setUserToSendName(userOrRoom.name);
-                         }}
-                    >
-                        <div className="container-image-and-online">
-                            <div className={conectedUsers.includes(userOrRoom.id) ? "online" : "offline"}></div>{unReadMessagesCountByChat}
-                        </div>
-                        {lastMessageSender ? (
-                            <div className="container-user-chat-content">
-                                <span className="sender-chat-span">{userOrRoom.name}</span>
-                                <p className="sender-content">
-                                    {lastMessageSender.id === user.id ? "Вы" : lastMessageSender.name}:{" "}
-                                    {lastMessageContent && (lastMessageContent.length <= 32 ? lastMessageContent : `${lastMessageContent.substring(0, 32)}...`)}
-                                </p>
-                                <span className="last-message-hour">{getDateAndHours(lastMessageCreatedAt)}</span>
-                            </div>
-                        ) : (
-                            <>
-                                {Array.isArray(userOrRoom.members) ? (
-                                    <div className="container-user-chat-content">
-                                        <span className="sender-chat-span">{userOrRoom.name}</span>
-                                        <p className="sender-content">
-                                            {userOrRoom.creator === user.id ? `You created group "${userOrRoom.name}".` : "You were added."}
-                                        </p>
-                                        <span
-                                            className="last-message-hour">{getDateAndHours(userOrRoom.createdAt)}</span>
-                                    </div>
-                                ) : (
-                                    <div className="container-user-chat-none-content">
-                                        <span className="sender-chat-span">{userOrRoom.name}</span>
-                                        <p className="sender-none-content"></p>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
-                );
-            })}
-        </div>
-    );
+  return (
+    <>
+      <UserSearch users={users} />
+      <div className="chats">
+        {sortedUsers.map(({ user: sortedUser, messageCount }, index) => (
+          <div
+            key={index}
+            className={`sender-chat user-chat-id-${sortedUser.id} ${userToSend === sortedUser.id ? "selected" : ""}`}
+            onClick={() => {
+              setUserToSend(sortedUser.id);
+              setUserToSendName(sortedUser.name);
+            }}
+          >
+            <div className="container-image-and-online">
+              <div
+                className={
+                  conectedUsers.includes(sortedUser.id) ? "online" : "offline"
+                }
+              ></div>
+            </div>
+            <div className="container-user-chat-content">
+              <span className="sender-chat-name">{sortedUser.name}</span>
+            </div>
+            <div className="sender-chat-meta">
+              {messageCount ? (
+                <>
+                  <span className="container-message-count">
+                    {messageCount}
+                  </span>
+                </>
+              ) : (
+                ""
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
 }
 
 export default ChatsPanel;

@@ -17,4 +17,6 @@ export class Message {
   receiverId: number;
   @Column({ default: false })
   isRead: boolean;
+  @Column({ default: null })
+  source: string;
 }
