@@ -1,4 +1,10 @@
-import { ChangeEvent, FormEvent, useCallback, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { getDateAndHours } from "../functions/getDateAndHours.ts";
 import { useSocketContext } from "../contexts/SocketContext.tsx";
 import { useUserContext } from "../contexts/UserContext.tsx";
@@ -11,7 +17,11 @@ const linkify = (text: string) => {
   return text.replace(
     urlPattern,
     (url) =>
-      `<a href="${url}" target="_blank" rel="noopener noreferrer">по ссылке</a>`,
+      `<a href="${url}" target="_blank" rel="noopener noreferrer">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 0V2H14.59L4.76 11.83L6.17 13.24L16 3.41V7H18V0H11ZM16 16H2V2H9V0H2C0.89 0 0 0.89 0 2V16C0 16.5304 0.210714 17.0391 0.585786 17.4142C0.960859 17.7893 1.46957 18 2 18H16C16.5304 18 17.0391 17.7893 17.4142 17.4142C17.7893 17.0391 18 16.5304 18 16V9H16V16Z" fill="#1E2B3E"/>
+      </svg>
+      </a>`,
   );
 };
 
@@ -58,15 +68,36 @@ const MessagesContainer = () => {
     e.preventDefault();
     sendMessage();
   };
-  const onEnterPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
+  const onEnterPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
       sendMessage();
     }
   };
 
+  const onLinkGenPress = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const linkGen = new CustomEvent("showLinkGenModal");
+    dispatchEvent(linkGen);
+  };
+
+  const handleCustomEvent = useCallback((event: Event) => {
+    if (event instanceof CustomEvent && typeof event.detail === "string") {
+      setText(event.detail);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("sendLinkEvent", handleCustomEvent);
+
+    return () => {
+      window.removeEventListener("sendLinkEvent", handleCustomEvent);
+    };
+  }, [handleCustomEvent]);
+
   const sanitizeHtml = (html: string) => {
     return DOMPurify.sanitize(html, {
+      USE_PROFILES: { svg: true, svgFilters: true, html: true },
       ALLOWED_TAGS: ["a", "span"],
       ALLOWED_ATTR: ["target", "href", "rel", "title"],
     });
@@ -149,6 +180,7 @@ const MessagesContainer = () => {
                 isOpen ? "dropdown-toggle dropdown--active" : "dropdown-toggle"
               }
               onClick={toggleDropdown}
+              hidden={true}
             >
               <svg
                 width="24"
@@ -228,9 +260,19 @@ const MessagesContainer = () => {
           }
           placeholder="Написать сообщение"
         />
-        <button className="btn btn-primary" disabled={!text.trim()}>
-          Отправить
-        </button>
+        <div className="form-btn-group">
+          <button
+            hidden={true}
+            className="btn btn-primary buy-link-generator"
+            id="productLinkGenerator"
+            onClick={onLinkGenPress}
+          >
+            Сгенерировать ссылку на товар
+          </button>
+          <button className="btn btn-primary" disabled={!text.trim()}>
+            Отправить
+          </button>
+        </div>
       </form>
     </div>
   );
