@@ -21,6 +21,16 @@ const linkify = (text: string) => {
   );
 };
 
+const urlFromMsg = (text: string) => {
+  const urlPattern = /https?:\/\/[^\s]+/g; // Регулярное выражение для поиска ссылок
+  return text.replace(urlPattern, (url) => url);
+};
+
+const paramFromUrl = (url: string, param: string) => {
+  const urlWithParams = new URLSearchParams(url);
+  return urlWithParams.get(param);
+};
+
 const MessagesContainer = () => {
   const { user } = useUserContext();
   const {
@@ -43,12 +53,17 @@ const MessagesContainer = () => {
   const sendMessage = useCallback(() => {
     if (!text.trim()) return;
 
+    const url: string = urlFromMsg(text);
+
     const completeData = {
       sender: user.id,
       content: text,
       createdAt: dateISO,
       receiverId: userToSend,
       isRead: false,
+      itemId: paramFromUrl(url, "product_id"),
+      itemCat: paramFromUrl(url, "category_id"),
+      itemWarehouse: paramFromUrl(url, "warehouse_id"),
     };
 
     if (socket) socket.emit("message", completeData);
@@ -69,6 +84,22 @@ const MessagesContainer = () => {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const onPressToMsg = (
+    e: React.MouseEvent,
+    itemId: number,
+    itemCat: number,
+    itemWar?: number,
+  ) => {
+    e.preventDefault();
+    console.log({
+      product_id: itemId,
+      cat_id: itemCat,
+      war_id: itemWar,
+    });
+    const linkGen = new CustomEvent("showLinkGenModal");
+    dispatchEvent(linkGen);
   };
 
   const onLinkGenPress = (e: React.MouseEvent) => {
@@ -93,7 +124,6 @@ const MessagesContainer = () => {
 
   const sanitizeHtml = (html: string) => {
     return DOMPurify.sanitize(html, {
-      USE_PROFILES: { svg: true, svgFilters: true, html: true },
       ALLOWED_TAGS: ["a", "span"],
       ALLOWED_ATTR: ["target", "href", "rel", "title"],
     });
@@ -113,12 +143,28 @@ const MessagesContainer = () => {
           message.isRead ? "read" : "unread"
         }`}
       >
-        <p
-          className="message-content"
-          dangerouslySetInnerHTML={{
-            __html: sanitizeHtml(linkify(message.content)),
-          }}
-        />
+        <div className="message-content-wrap">
+          <p
+            className="message-content"
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHtml(linkify(message.content)),
+            }}
+          />
+          {message.itemId !== null && message.itemId !== 0 ? (
+            <span
+              onClick={(e) => {
+                onPressToMsg(
+                  e,
+                  message.itemId,
+                  message.itemCat,
+                  message.itemWarehouse,
+                );
+              }}
+            ></span>
+          ) : (
+            ""
+          )}
+        </div>
         <span className="message-hour">
           {getDateAndHours(message.createdAt)}
         </span>
