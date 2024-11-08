@@ -379,7 +379,7 @@ span.container-message-count {
     flex-direction: row-reverse;
 }
 
-.message-content {
+.message-content-wrap {
     font-size: 16px;
     line-height: 24px;
     padding: 16px 20px;
@@ -387,7 +387,7 @@ span.container-message-count {
     color: #1E2B3E;
 }
 
-.message-left .message-content {
+.message-left .message-content-wrap {
     background: #F3F8FF;
     width: auto;
     border-bottom-left-radius: 12px;
@@ -395,7 +395,7 @@ span.container-message-count {
     border-top-right-radius: 12px;
 }
 
-.message-right .message-content {
+.message-right .message-content-wrap {
     background: rgba(0, 176, 102, 0.05);
     width: auto;
     text-align: left;
@@ -403,6 +403,10 @@ span.container-message-count {
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
     margin-left: 12px;
+}
+
+.message-content {
+    margin: 0;
 }
 
 .message-sender {

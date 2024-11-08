@@ -166,6 +166,13 @@ textarea::placeholder {
     margin-left: 12px;
 }
 
+.message-content-wrap .message-rich-link {
+    position: relative;
+    display: block;
+    height: auto;
+    line-height: 0;
+}
+
 .message-sender {
     color: grey;
     font-weight: normal;

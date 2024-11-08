@@ -14,6 +14,8 @@ function ChatsPanel() {
     setUserToSend,
     setUserToSendName,
     allMessages,
+    unReadMessagesCount,
+    setMessagesAsRead,
   } = useSocketContext();
   const { users } = useGetAllUsers(user.id);
 
@@ -55,6 +57,7 @@ function ChatsPanel() {
 
   const sortedUsers = useMemo(() => {
     return userMessagesData.sort((a, b) => {
+      console.log(unReadMessagesCount);
       // Сортировка по последнему сообщению и онлайн статусу
       if (a.lastMessageDate && !b.lastMessageDate) return -1;
       if (!a.lastMessageDate && b.lastMessageDate) return 1;
@@ -70,6 +73,17 @@ function ChatsPanel() {
   return (
     <>
       <UserSearch users={users} />
+      {userToSend === 0 && unReadMessagesCount.count ? (
+        <div
+          onClick={() => {
+            setMessagesAsRead(1);
+          }}
+        >
+          Отметить все как прочитанные
+        </div>
+      ) : (
+        ""
+      )}
       <div className="chats">
         {sortedUsers.map(({ user: sortedUser, messageCount }, index) => (
           <div

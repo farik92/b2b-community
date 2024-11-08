@@ -8,6 +8,7 @@ export interface Message {
   type: string;
   receiverId: number;
   isRead: boolean;
+  source?: string;
   itemId: number;
   itemCat: number;
   itemWarehouse: number;
@@ -21,7 +22,16 @@ export interface SenderStringMessage {
   type: string;
   receiverId: number;
   isRead: boolean;
+  source?: string;
   itemId: number;
   itemCat: number;
   itemWarehouse: number;
+}
+
+export interface MessageSource {
+  itemId?: number;
+  itemSku?: string;
+  itemName?: string;
+  itemCat?: number;
+  itemWarehouse?: number;
 }

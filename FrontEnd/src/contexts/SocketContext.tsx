@@ -27,6 +27,7 @@ const SocketProvider = (props: ChildrenType) => {
   const [unReadMessagesCount, setUnReadMessagesCount] = useState<{
     count?: number;
   }>({});
+  const [messagesAsRead, setMessagesAsRead] = useState<number>(0);
   const [userToSend, setUserToSend] = useState<number>(0);
   const [userToSendName, setUserToSendName] = useState<string>("none");
   const { messages, setMessages } = useGetAllMessages(userToSend);
@@ -139,6 +140,24 @@ const SocketProvider = (props: ChildrenType) => {
       };
     }
   }, [userToSend]);
+
+  useEffect(() => {
+    if (socket) {
+      if (user.id) {
+        socket.emit("markAllMessagesAsRead", {
+          userId: user.id,
+        });
+      }
+      socket.on("unReadMessagesCount", (count: number) => {
+        setUnReadMessagesCount({ count });
+      });
+      return () => {
+        socket.off("markMessageAsRead");
+        socket.off("unReadMessagesCount");
+        setMessagesAsRead(0);
+      };
+    }
+  }, [messagesAsRead]);
 
   useEffect(() => {
     if (socket) {
