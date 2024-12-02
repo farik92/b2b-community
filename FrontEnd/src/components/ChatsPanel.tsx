@@ -57,7 +57,6 @@ function ChatsPanel() {
 
   const sortedUsers = useMemo(() => {
     return userMessagesData.sort((a, b) => {
-      console.log(unReadMessagesCount);
       // Сортировка по последнему сообщению и онлайн статусу
       if (a.lastMessageDate && !b.lastMessageDate) return -1;
       if (!a.lastMessageDate && b.lastMessageDate) return 1;
@@ -75,6 +74,7 @@ function ChatsPanel() {
       <UserSearch users={users} />
       {userToSend === 0 && unReadMessagesCount.count ? (
         <div
+          hidden={true}
           onClick={() => {
             setMessagesAsRead(1);
           }}

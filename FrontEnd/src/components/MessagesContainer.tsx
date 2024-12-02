@@ -185,7 +185,7 @@ const MessagesContainer = () => {
           )}
         </div>
         <span className="message-hour">
-          {getDateAndHours(message.createdAt)}
+          {getDateAndHours(message.createdAt, "hours")}
         </span>
         {isSender && message.isRead && (
           <span className="message-read">
