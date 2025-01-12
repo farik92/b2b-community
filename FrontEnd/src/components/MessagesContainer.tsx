@@ -50,7 +50,7 @@ const MessagesContainer = () => {
 
   const toggleDropdown = () => setIsOpen(!isOpen);
 
-  const sendMessage = useCallback(() => {
+  const sendMessage = useCallback(async() => {
     if (!text.trim()) return;
 
     const url: string = urlFromMsg(text);
@@ -66,14 +66,15 @@ const MessagesContainer = () => {
       itemWarehouse: paramFromUrl(url, "warehouse_id"),
     };
 
-    if (socket) socket.emit("message", completeData);
+    socket?.emit('message', completeData);
     setMessages((prev: SenderStringMessage[]) => [...prev, completeData]);
     setAllMessages((prev: SenderStringMessage[]) => [
       ...prev,
       { ...completeData, sender: user },
     ]);
     setText("");
-  }, [text, socket, user.id, dateISO, userToSend, setMessages, setAllMessages]);
+  }, [text, socket, user, dateISO, userToSend, setMessages, setAllMessages]);
+
 
   const textHandleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -313,21 +314,21 @@ const MessagesContainer = () => {
       </div>
       <form className="chat-form" onSubmit={textHandleSubmit}>
         <textarea
-          className="input-chat"
-          value={text}
-          rows={4}
-          onKeyDown={onEnterPress}
-          onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-            setText(e.target.value)
-          }
-          placeholder="Написать сообщение"
+            className="input-chat"
+            value={text}
+            rows={4}
+            onKeyDown={onEnterPress}
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                setText(e.target.value)
+            }
+            placeholder="Написать сообщение"
         />
         <div className="form-btn-group">
           <button
-            hidden={true}
-            className="btn btn-primary buy-link-generator"
-            id="productLinkGenerator"
-            onClick={onLinkGenPress}
+              hidden={true}
+              className="btn btn-primary buy-link-generator"
+              id="productLinkGenerator"
+              onClick={onLinkGenPress}
           >
             Сгенерировать ссылку на товар
           </button>

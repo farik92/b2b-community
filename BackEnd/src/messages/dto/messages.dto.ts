@@ -31,6 +31,24 @@ export class CreateMessageDto {
   @IsOptional()
   @IsString()
   source?: string;
+  @ApiProperty({ example: 998, description: 'ID ресурса' })
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  itemId?: number;
+  @ApiProperty({ example: 998, description: 'ID категории ресурса' })
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  itemCat?: number;
+  @ApiProperty({ example: 998, description: 'ID склада ресурса' })
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  itemWarehouse?: number;
+  @IsOptional()
+  @IsString()
+  files?: string;
 }
 
 export interface finalReceiverDto {

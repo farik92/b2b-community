@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
+import { UsersService } from '../users/users.service';
 import { CreateMessageDto, finalReceiverDto } from './dto/messages.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -22,6 +23,7 @@ import { WebSocketsGateway } from '../socket/websockets.gateway';
 export class MessagesController {
   constructor(
     private messagesService: MessagesService,
+    private usersService: UsersService,
     private socketServer: WebSocketsGateway,
   ) {}
   @Get('/getAll')
@@ -37,16 +39,30 @@ export class MessagesController {
   }
   @Post('/post')
   async createMessageEndpoint(@Body() newMessage: CreateMessageDto) {
+    const newMsg = await this.messagesService.postMessage(newMessage);
+
+    /*for (const client of this.socketServer.clients) {
+      if (client.user === newMessage.receiverId) {
+        console.log(client.id);
+      }
+    }*/
+
+    const senderUser = await this.usersService.getUser(newMessage.sender);
+    const unReadMessagesCount = await this.messagesService.unReadCount(
+      newMessage.receiverId,
+    );
+
     this.socketServer.clients
       .filter((s) => s.user === newMessage.receiverId)
-      .forEach((s) =>
+      .forEach((s) => {
         s.socket.emit('message', {
           ...newMessage,
           type: 'user',
-          sender: { id: newMessage.sender },
-        }),
-      );
-    return this.messagesService.postMessage(newMessage);
+          sender: senderUser,
+        });
+        s.socket.emit('unReadMessagesCount', unReadMessagesCount);
+      });
+    return newMsg;
   }
   @Post('/read')
   markMessageAsRead(

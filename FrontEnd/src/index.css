@@ -309,6 +309,29 @@ span.container-message-count {
     border-radius: 5px;
 }
 
+.chat-form .file-preview {
+    display: flex;
+}
+
+.chat-form .file-preview .file-item {
+    max-width: 100px;
+    height: 100px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.chat-form .file-preview .file-item img {
+    max-width: 100%;
+}
+
+.chat-form .file-preview .file-item button {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
 .chat-form {
     padding: 24px 24px 0 24px;
     display: flex;

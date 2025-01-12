@@ -19,4 +19,10 @@ export class Message {
   isRead: boolean;
   @Column({ default: null })
   source: string;
+  @Column({ default: null })
+  itemId: number;
+  @Column({ default: null })
+  itemCat: number;
+  @Column({ default: null })
+  itemWarehouse: number;
 }

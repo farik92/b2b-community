@@ -3,17 +3,18 @@ import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+//import { readFileSync } from 'fs';
 
 async function bootstrap() {
+  /*const httpsOptions = {
+    key: readFileSync('./keys/private.key'),
+    cert: readFileSync('./keys/ca.pem'),
+  };*/
+
+  //const app = await NestFactory.create(AppModule, { httpsOptions });
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: [
-      'http://localhost:5173',
-      'https://market.b2b-se.com',
-      'https://b2b-se.com',
-      'https://site.b2b-se.com',
-      'https://b2b-se.com',
-    ],
+    origin: ['http://localhost:5173', 'http://localhost:5174'],
     credentials: true,
   });
 
@@ -37,4 +38,5 @@ async function bootstrap() {
 
   await app.listen(3000);
 }
+
 bootstrap();

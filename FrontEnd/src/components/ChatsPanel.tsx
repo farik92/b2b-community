@@ -14,8 +14,6 @@ function ChatsPanel() {
     setUserToSend,
     setUserToSendName,
     allMessages,
-    unReadMessagesCount,
-    setMessagesAsRead,
   } = useSocketContext();
   const { users } = useGetAllUsers(user.id);
 
@@ -72,18 +70,6 @@ function ChatsPanel() {
   return (
     <>
       <UserSearch users={users} />
-      {userToSend === 0 && unReadMessagesCount.count ? (
-        <div
-          hidden={true}
-          onClick={() => {
-            setMessagesAsRead(1);
-          }}
-        >
-          Отметить все как прочитанные
-        </div>
-      ) : (
-        ""
-      )}
       <div className="chats">
         {sortedUsers.map(({ user: sortedUser, messageCount }, index) => (
           <div

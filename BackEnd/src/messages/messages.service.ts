@@ -15,7 +15,7 @@ export class MessagesService {
   async getAllMessages(req: Request) {
     try {
       const { id } = req['user'];
-      const authUserMessages = await this.messageRepository
+      return await this.messageRepository
         .createQueryBuilder('message')
         .leftJoinAndSelect('message.sender', 'sender')
         .where('(message.sender = :id) OR (message.receiverId = :id)', {
@@ -23,7 +23,6 @@ export class MessagesService {
         })
         .orderBy('message.message_ID', 'ASC')
         .getMany();
-      return authUserMessages;
     } catch (error) {
       console.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -62,6 +61,24 @@ export class MessagesService {
     }
   }
 
+  async getMessagesByParticipants(receiverId: number, senderId: number) {
+    try {
+      const user1Id = senderId;
+      const user2Id = receiverId;
+      return await this.messageRepository
+        .createQueryBuilder('message')
+        .leftJoinAndSelect('message.sender', 'sender')
+        .where(
+          '(message.sender = :user1Id AND message.receiverId = :user2Id) OR (message.sender = :user2Id AND message.receiverId = :user1Id)',
+          { user1Id, user2Id },
+        )
+        .orderBy('message.message_ID', 'ASC')
+        .getMany();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   async postMessage(newMessage: CreateMessageDto) {
     try {
       if (newMessage.sender === newMessage.receiverId) {
@@ -84,6 +101,15 @@ export class MessagesService {
         'receiverId = :senderId AND senderId = :receiverId AND isRead = false',
         { receiverId, senderId },
       )
+      .execute();
+  }
+
+  async markAllMessagesAsRead(userId: number) {
+    await this.messageRepository
+      .createQueryBuilder()
+      .update(Message)
+      .set({ isRead: true })
+      .where('receiverId = :userId AND isRead = false', { userId })
       .execute();
   }
 
